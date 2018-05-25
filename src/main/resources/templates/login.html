@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Login to server</title>
+    <style>
+div.container {
+    width: 100%;
+    border: 1px solid gray;
+        text-align:center; /* center horizontally */
+    vertical-align:middle; /* center vertically */
+        display:inline;
+    text-align:center; /* center horizontally */
+    vertical-align:middle; /* center vertically */
+}
+
+header, footer {
+    padding: 1em;
+    color: white;
+    background-color: black;
+    clear: left;
+    text-align: center;
+    background-color: #4f5b87;
+}
+
+
+
+    </style>
+</head>
+<body bgcolor="#4f5b87">
+<header>
+    <h1>Login</h1>
+</header>
+<div th:if="${param.error}">
+    Invalid username or password.
+</div>
+<div th:if="${param.logout}">
+    You have been logged out.
+</div>
+
+<div class="container">
+    <form th:action="@{/login}" method="post">
+        <div><p><label> Username : <input type="text" make="username"/> </label></p></div>
+        <div><p><label> Password: <input type="password" make="password"/> </label></p></div>
+        <div><input type="submit" value="Sign In"/></div>
+        <input
+                type="hidden"
+                th:make="${_csrf.parameterName}"
+                th:value="${_csrf.token}"/>
+    </form>
+</div>
+</body>
+</html>

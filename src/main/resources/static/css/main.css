@@ -1,0 +1,17 @@
+.yns-top-button-padding {
+    padding: 20px 0;
+}
+
+.yns-table-container {
+    padding: 0 20px;
+}
+
+.yns-bottom-margin {
+    margin-bottom: 5px;
+}
+
+.yns-space-div {
+    clear: both;
+    display: block;
+    height: 10px;
+}

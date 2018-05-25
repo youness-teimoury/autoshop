@@ -1,0 +1,100 @@
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title th:text="${pageMetadata.title}">Temp Title</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link type="text/css" rel="stylesheet" th:href="@{~/css/bootstrap.min.css}"/>
+    <link type="text/css" rel="stylesheet" th:href="@{~/css/main.css}"/>
+    <script type="text/javascript" th:src="@{~/js/jquery-3.3.1.min.js}"></script>
+</head>
+<body>
+<div class="container">
+    <h3 th:text="${pageMetadata.title}">Temp Title</h3>
+
+    <div class="row">
+        <div class="col-md-4">
+            <form th:object="${bean}" th:action="@{save}" action="#" method="post">
+                <input type="hidden" th:field="*{id}" class="form-control"/>
+
+                <div th:each="propertyContainer : ${propertyContainers}">
+                    <label th:text="${propertyContainer.propertyCaption}"></label>
+                    <input type="text"
+                           th:id="${propertyContainer.propertyName}"
+                           th:name="${propertyContainer.propertyName}"
+                           th:value="${propertyContainer.propertyValue}"
+                           class="form-control"
+                           th:placeholder="${propertyContainer.propertyCaption}"/>
+                    <div class="yns-space-div"></div>
+                </div>
+                <input type="submit" class="btn btn-primary yns-bottom-margin" value="Save"></input>
+            </form>
+        </div>
+    </div>
+
+    <div class="yns-space-div"></div>
+    <div class="yns-space-div"></div>
+
+    <div class="row">
+        <!--iterate through all linked entities-->
+        <!--This is the table that includes the existing links between the parent entity and the child entity-->
+        <th:block th:each="linkedPropertyContainer : ${linkedPropertyContainers}">
+            <div class="col-md-8">
+                <div class="panel panel-default">
+                    <div class="panel-body" style="padding-left: 5px;">
+                        <label th:text="${linkedPropertyContainer.propertyCaption}"></label>
+                        <!--set the id to make the table name unique-->
+                        <table th:id="linkTable_ + ${linkedPropertyContainer.propertyName}" class="table table-striped">
+                            <tr th:each="item : ${linkedPropertyContainer.propertyContainers}">
+                                <td th:text="${item.propertyValue}"></td>
+                            <tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="row">
+                    <form th:id="ayncPostForm_ + ${linkedPropertyContainer.propertyName}"
+                          th:action="@{saveLink}" action="#" method="post">
+                        <div class="col-md-9">
+                            <select th:id="asyncPostFormSelectField_ + ${linkedPropertyContainer.propertyName}"
+                                    th:name="asyncPostFormSelectField_ + ${linkedPropertyContainer.propertyName}"
+                                    th:value="${linkedPropertyContainer.childId}"
+                                    class="form-control">
+                                <option th:each="beanContainer : ${linkedPropertyContainer.beanContainers}"
+                                        th:value="${beanContainer.id}"
+                                        th:text="${beanContainer.caption}">
+                                </option>
+                            </select>
+                        </div>
+                        <!--The hidden field to maintain the owning entity ID-->
+                        <input th:id="asyncPostFormSelectParentFieldValue_ + ${linkedPropertyContainer.propertyName}"
+                               th:name="asyncPostFormSelectParentFieldValue_ + ${linkedPropertyContainer.propertyName}"
+                               th:value="${linkedPropertyContainer.parentId}"
+                               type="hidden"/>
+                        <!--The hidden field to maintain the owning entity type-->
+                        <input th:id="asyncPostFormParentFieldType_ + ${linkedPropertyContainer.propertyName}"
+                               th:name="asyncPostFormParentFieldType_ + ${linkedPropertyContainer.propertyName}"
+                               th:value="${linkedPropertyContainer.parentType}"
+                               type="hidden"/>
+                        <!--The hidden field to maintain the child entity type-->
+                        <input th:id="asyncPostFormChildFieldType_ + ${linkedPropertyContainer.propertyName}"
+                               th:name="asyncPostFormChildFieldType_ + ${linkedPropertyContainer.propertyName}"
+                               th:value="${linkedPropertyContainer.childType}"
+                               type="hidden"/>
+                        <input type="submit" name="action" class="col-md-3 btn btn-primary"
+                               value="Add & save"></input>
+                    </form>
+                </div>
+                <div class="yns-space-div"></div>
+                <div class="row">
+                    <p th:id="formPostConfirmation_ + ${linkedPropertyContainer.propertyName}"></p>
+                </div>
+            </div>
+        </th:block>
+    </div>
+</div>
+</body>
+<script type="text/javascript" th:src="@{~/js/main.js}"></script>
+</html>

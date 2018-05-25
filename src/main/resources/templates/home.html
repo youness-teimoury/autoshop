@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Chat Server</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link type="text/css" rel="stylesheet" th:href="@{~/css/main.css}"/>
+    <link type="text/css" rel="stylesheet" th:href="@{~/css/bootstrap.min.css}"/>
+    <script type="text/javascript" th:src="@{~/js/jquery-3.3.1.min.js}"></script>
+    <script type="text/javascript" th:src="@{~/js/bootstrap.min.js}"></script>
+
+    <style>
+        div.container {
+            width: 100%;
+            border: 1px solid gray;
+            text-align: center; /* center horizontally */
+            vertical-align: middle; /* center vertically */
+            display: inline;
+            text-align: center; /* center horizontally */
+            vertical-align: middle; /* center vertically */
+        }
+
+        header, footer {
+            padding: 1em;
+            color: white;
+            background-color: black;
+            clear: left;
+            text-align: center;
+            background-color: #f0d5d2;
+        }
+
+
+    </style>
+</head>
+<body bgcolor="#f0d5d2">
+
+<div class="container">
+
+    <header>
+        <h1>Youness Teimouri</h1>
+    </header>
+
+    <footer>
+        <div class="dropdown col-md-2 yns-top-button-padding">
+            <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">Menu
+                <span class="caret"></span></button>
+            <ul class="dropdown-menu">
+                <li class="dropdown-header">Definitions</li>
+                <li><a th:href="@{~/maintenanceType/list}">Maintenance Types</a></li>
+                <li><a th:href="@{~/carType/list}">Car Types</a></li>
+                <li><a th:href="@{~/carMaker/list}">Car Makers</a></li>
+                <li class="divider"></li>
+                <li class="dropdown-header">Customer Data</li>
+                <li><a th:href="@{~/car/list}">Cars</a></li>
+            </ul>
+        </div>
+    </footer>
+
+</div>
+
+</body>
+
+</html>

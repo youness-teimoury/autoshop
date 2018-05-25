@@ -1,0 +1,75 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title th:text="${pageMetadata.title}">Temp Title</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link type="text/css" rel="stylesheet" th:href="@{~/css/main.css}"/>
+    <link type="text/css" rel="stylesheet" th:href="@{~/css/bootstrap.min.css}"/>
+    <script type="text/javascript" th:src="@{~/js/jquery-3.3.1.min.js}"></script>
+    <script type="text/javascript" th:src="@{~/js/bootstrap.min.js}"></script>
+</head>
+<body>
+
+<div class="container">
+    <div class="col-md-8">
+        <h3 th:text="${pageMetadata.title}"></h3>
+    </div>
+    <div class="col-md-1 yns-top-button-padding">
+        <a href="add" class="btn btn-primary">Add</a>
+    </div>
+    <div class="dropdown col-md-2 yns-top-button-padding">
+        <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">Menu
+            <span class="caret"></span></button>
+        <ul class="dropdown-menu">
+            <li class="dropdown-header">Definitions</li>
+            <li><a th:href="@{~/maintenanceType/list}">Maintenance Types</a></li>
+            <li><a th:href="@{~/carType/list}">Car Types</a></li>
+            <li><a th:href="@{~/carMaker/list}">Car Makers</a></li>
+            <li><a th:href="@{~/carModel/list}">Car Models</a></li>
+            <li class="divider"></li>
+            <li class="dropdown-header">Customer Data</li>
+            <li><a th:href="@{~/car/list}">Cars</a></li>
+        </ul>
+    </div>
+    <div class="col-md-1 yns-top-button-padding">
+        <form th:action="@{/logout}" method="post">
+            <input type="submit" value="Sign Out" class="btn btn-danger"/>
+        </form>
+    </div>
+
+    <div class="yns-table-container">
+        <table class="table table-striped">
+            <tr>
+                <!--attribute container to loop through col names-->
+                <th:block th:each="colName : ${entityPropertyNames}">
+                    <th th:text="${colName}">Temp Column Name</th>
+                </th:block>
+                <th>Actions</th>
+            </tr>
+            <tr th:each="beanContainers : ${list}">
+                <!--attribute container to loop through col values-->
+                <th:block th:each="beanContainer : ${beanContainers}">
+                    <!--We need an inner loop to iterate through the real property values-->
+                    <th:block th:each="propertyValue : ${beanContainer.propertyValues}">
+                        <td th:text="${propertyValue}"></td>
+                    </th:block>
+                    <td class="col-md-2">
+                        <a th:href="@{edit(id=${beanContainer.id})}" class="btn btn-primary btn-xs">Edit</a>
+                        <a th:href="@{delete/{id}(id=${beanContainer.id})}" class="btn btn-danger btn-xs"
+                           onclick="return confirm('This will delete the item.\nAre you sure to continue?');">Delete</a>
+                        <!--<a sec:authorize="hasAuthority('ADMIN')" th:href="@{delete/{id}(id=${bean.id})}"-->
+                        <!--class="btn btn-danger btn-xs">Delete</a>-->
+                    </td>
+
+                </th:block>
+                <!--<td>-->
+                <!--<span th:each="carType,iterStat : ${maintenanceType.carTypes}">-->
+                <!--<span th:text="${carType.name}"/><th:block th:if="${!iterStat.last}">,</th:block>-->
+                <!--</span>    		-->
+                <!--</td>-->
+            </tr>
+        </table>
+    </div>
+</div>
+</body>
+</html>

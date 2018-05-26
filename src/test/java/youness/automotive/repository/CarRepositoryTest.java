@@ -41,6 +41,9 @@ public class CarRepositoryTest {
     @Autowired
     private CarOwnerRepository carOwnerRepository;
 
+    @Autowired
+    private MaintenanceJobRepository maintenanceJobRepository;
+
     private TestUtils testUtils;
 
     @Before
@@ -69,6 +72,7 @@ public class CarRepositoryTest {
         car.setModel(carModel);
         car.setOwner(carOwner);
         car.setYear(2016);
+        car.setEngineNo("testEngineNo");
 
         // Act
         carRepository.save(car);
@@ -111,7 +115,40 @@ public class CarRepositoryTest {
         Set<ConstraintViolation<Car>> violations = validator.validate(car);
 
         /// Assert
-        assertThat(violations, IsCollectionWithSize.hasSize(3));
+        assertThat(violations, IsCollectionWithSize.hasSize(4));
+    }
+
+    @Test
+    public void shouldLoadAllTheMaintenanceJobs() {
+        // Arrange
+        String carMakerName = "TOYOTA";
+        String carModelName = "RAV4";
+        String carTypeName = "Gas";
+        String carOwnerPhoneNo = "4038055680";
+
+        CarOwner carOwner = testUtils.createAndSaveCarOwner(carOwnerPhoneNo);
+        CarMaker carMaker = testUtils.createAndSaveCarMaker(carMakerName);
+        CarType carType = testUtils.createAndSaveCarType(carTypeName);
+        CarModel carModel = testUtils.createAndSaveCarModel(carModelName, carMaker, carType);
+
+        Car car = new Car();
+        car.setModel(carModel);
+        car.setOwner(carOwner);
+        car.setYear(2016);
+        car.setEngineNo("testEngineNo");
+        carRepository.save(car);
+
+        MaintenanceJob job = new MaintenanceJob();
+        job.setCar(car);
+        maintenanceJobRepository.save(job);
+
+        // Act
+        Car fetchedCar = carRepository.getOne(car.getId());
+
+        //Assert
+        assertThat(fetchedCar, CoreMatchers.notNullValue());
+        assertThat(fetchedCar.getMaintenanceJobs(), IsCollectionWithSize.hasSize(1));
+        assertThat(fetchedCar.getMaintenanceJobs().iterator().next().getId(), CoreMatchers.is(job.getId()));
     }
 
 }

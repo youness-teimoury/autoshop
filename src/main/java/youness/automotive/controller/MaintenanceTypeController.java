@@ -7,14 +7,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import youness.automotive.controller.bean.DataLinkRequestBean;
 import youness.automotive.controller.bean.LinkedPropertyContainer;
 import youness.automotive.controller.bean.PropertyContainer;
+import youness.automotive.controller.bean.PropertyMetadata;
 import youness.automotive.repository.CarTypeRepository;
 import youness.automotive.repository.MaintenanceTypeRepository;
 import youness.automotive.repository.model.CarType;
 import youness.automotive.repository.model.MaintenanceType;
 import youness.automotive.utils.BeanContainerUtils;
 
-import java.util.Arrays;
-import java.util.LinkedHashMap;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Controller
@@ -47,15 +48,15 @@ public class MaintenanceTypeController implements GenericViewController<Maintena
     }
 
     @Override
-    public String getEntityName() {
+    public String getViewTitle() {
         return "maintenance type";
     }
 
     @Override
-    public LinkedHashMap<String, String> getPropertyMetadata() {
-        LinkedHashMap<String, String> map = new LinkedHashMap<>();
-        map.put("name", "Name");
-        return map;
+    public List<PropertyMetadata<MaintenanceType>> getPropertyMetadata() {
+        List<PropertyMetadata<MaintenanceType>> list = new ArrayList<>();
+        list.add(new PropertyMetadata<>("name", "Name", MaintenanceType::getName));
+        return list;
     }
 
     @Override
@@ -67,7 +68,7 @@ public class MaintenanceTypeController implements GenericViewController<Maintena
         // Populate existing values
         populateAlreadySetValues(linkedPropertyContainer, beanId);
         populateSelectableValues(linkedPropertyContainer);
-        return Arrays.asList(linkedPropertyContainer);
+        return Collections.singletonList(linkedPropertyContainer);
     }
 
     private void populateAlreadySetValues(LinkedPropertyContainer linkedPropertyContainer, Long beanId) {
@@ -81,8 +82,7 @@ public class MaintenanceTypeController implements GenericViewController<Maintena
 
     private void populateSelectableValues(LinkedPropertyContainer linkedPropertyContainer) {
         linkedPropertyContainer.setBeanContainers(BeanContainerUtils.createBeanContainers(carTypeRepository.findAll(),
-                Arrays.asList("name"),
-                "name"));
+                new PropertyMetadata<CarType>("name", "Name", CarType::getName)));
     }
 
     @Override

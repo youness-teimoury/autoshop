@@ -1,9 +1,6 @@
 package youness.automotive.repository.model;
 
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
@@ -14,13 +11,17 @@ import javax.validation.constraints.NotNull;
  * The entity class to map the car model
  */
 @Entity
-@Table(name = "car_model")
+@Table(name = "car_model",
+        uniqueConstraints =
+        @UniqueConstraint(columnNames = {"name", "car_maker_id", "car_type_id"})
+)
 public class CarModel extends BaseEntity {
 
     /**
      * The model name
      */
     @NotBlank
+    @Column(name = "name")
     private String name;
 
     /**
@@ -28,10 +29,12 @@ public class CarModel extends BaseEntity {
      */
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "car_maker_id")
     private CarMaker maker;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "car_type_id")
     private CarType carType;
 
     public String getName() {
@@ -56,5 +59,10 @@ public class CarModel extends BaseEntity {
 
     public void setCarType(CarType carType) {
         this.carType = carType;
+    }
+
+    @Override
+    public String toString() {
+        return getMaker().getName() + " " + getName() + " " + getCarType().getName();
     }
 }

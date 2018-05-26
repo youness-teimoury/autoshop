@@ -13,6 +13,16 @@ public class PropertyContainer extends GenericPropertyContainer {
         super(propertyName, propertyCaption);
     }
 
+    @Override
+    public String getType() {
+        return "text";
+    }
+
+    /**
+     * Used by template engine to read the value
+     *
+     * @return
+     */
     public String getPropertyValue() {
         return propertyValue;
     }

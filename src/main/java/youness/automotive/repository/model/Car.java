@@ -2,11 +2,10 @@ package youness.automotive.repository.model;
 
 import org.hibernate.validator.constraints.Range;
 
-import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
+import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -19,6 +18,10 @@ import java.util.Set;
 @Table(name = "car")
 public class Car extends BaseEntity {
 
+    /**
+     * The current owner of the car
+     * // TODO can be a ManyToMany link (car might be owned by many people during time)
+     */
     @NotNull(message = "Car should have an owner")
     @ManyToOne
     private CarOwner owner;
@@ -34,8 +37,12 @@ public class Car extends BaseEntity {
     @Range(min = 0, max = 1000000, message = "Odometer can be between 0 to 1 million kilometers!")
     private int odometer;
 
-    @OneToMany
-    private Set<MaintenanceJob> maintenanceJobs;
+    @NotBlank
+    @Column(name = "engine_no")
+    private String engineNo;
+
+    @OneToMany(mappedBy = "car")
+    private Set<MaintenanceJob> maintenanceJobs = new HashSet<>();
 
     public CarOwner getOwner() {
         return owner;
@@ -75,5 +82,23 @@ public class Car extends BaseEntity {
 
     public void setMaintenanceJobs(Set<MaintenanceJob> maintenanceJobs) {
         this.maintenanceJobs = maintenanceJobs;
+    }
+
+    public void addMaintenanceJob(MaintenanceJob maintenanceJob) {
+        this.maintenanceJobs.add(maintenanceJob);
+        maintenanceJob.setCar(this);
+    }
+
+    public String getEngineNo() {
+        return engineNo;
+    }
+
+    public void setEngineNo(String engineNo) {
+        this.engineNo = engineNo;
+    }
+
+    @Override
+    public String toString() {
+        return this.getModel().getMaker().getName() + " " + this.getModel().getName() + " " + this.getYear();
     }
 }

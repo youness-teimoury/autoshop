@@ -1,10 +1,10 @@
 package youness.automotive.repository.model;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Youness Teimouri
@@ -15,7 +15,6 @@ import javax.validation.constraints.Pattern;
 @Entity
 @Table(name = "car_owner")
 public class CarOwner extends BaseEntity {
-
     @NotNull
     @Column(name = "first_name")
     private String firstName;
@@ -27,6 +26,9 @@ public class CarOwner extends BaseEntity {
     @Pattern(regexp = "\\d{6,15}", message = "Phone number should be between 6 to 15 digits only")
     @Column(name = "phone", unique = true)
     private String phone;
+
+    @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, mappedBy = "owner")// ovoid double mapping by mapper
+    private Set<Car> cars = new HashSet<>();// TODO add to tests
 
     public String getFirstName() {
         return firstName;
@@ -50,5 +52,23 @@ public class CarOwner extends BaseEntity {
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    public Set<Car> getCars() {
+        return cars;
+    }
+
+    public void setCars(Set<Car> cars) {
+        this.cars = cars;
+    }
+
+    public void addCar(Car car) {// TODO add test
+        this.cars.add(car);
+        car.setOwner(this);
+    }
+
+    @Override
+    public String toString() {
+        return firstName + " " + secondName;
     }
 }

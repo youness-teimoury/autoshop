@@ -101,6 +101,7 @@ public class TestUtils {
         car.setModel(carModel);
         car.setOwner(carOwner);
         car.setYear(2016);
+        car.setEngineNo("testEngineNo");
         return carRepository.save(car);
     }
 

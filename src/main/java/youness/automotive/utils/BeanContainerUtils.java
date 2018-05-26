@@ -5,11 +5,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.PropertyAccessorFactory;
 import youness.automotive.controller.bean.BeanContainer;
+import youness.automotive.controller.bean.PropertyMetadata;
 import youness.automotive.repository.model.BaseEntity;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 /**
  * Youness Teimouri
@@ -22,32 +26,58 @@ public class BeanContainerUtils {
 
     /**
      * Generates the list of bean containers from the list of Base Entities
-     * Each bean container contains the Id of the Base Entity and an ordered list of entities property values
+     * Each bean container contains the Id of the Base Entity and an ordered list of entities' property values
      * Only the property values that are passed through propertyNames parameter will be considered
      *
      * @param entities
-     * @param propertyNames   should be exactly same as the one defined in the entity class
-     * @param captionProperty an optional parameter name which value will be used as the caption of this container
+     * @param properties the names should exactly match the attribute name defined in the entity class
      * @param <T>
      * @return
      */
     public static <T extends BaseEntity> List<BeanContainer> createBeanContainers(List<T> entities,
-                                                                                  List<String> propertyNames, String captionProperty) {
+                                                                                  List<PropertyMetadata<T>> properties) {
+        return createBeanContainers(entities, properties, null);
+    }
+
+    /**
+     * {@link BeanContainerUtils#createBeanContainers(List, List)}
+     *
+     * @param entities
+     * @param property
+     * @param <T>
+     * @return
+     */
+    public static <T extends BaseEntity> List<BeanContainer> createBeanContainers(List<T> entities,
+                                                                                  PropertyMetadata<T> property) {
+        return createBeanContainers(entities, Collections.singletonList(property), property.getCaptionProvider());
+    }
+
+    /**
+     * {@link BeanContainerUtils#createBeanContainers(List, List)}
+     *
+     * @param entities
+     * @param properties
+     * @param captionProvider a unique user facing name generator for each entity
+     * @param <T>
+     * @return
+     */
+    public static <T extends BaseEntity> List<BeanContainer> createBeanContainers(List<T> entities,
+                                                                                  List<PropertyMetadata<T>> properties,
+                                                                                  Function<T, String> captionProvider) {
         List<BeanContainer> beanContainers = new ArrayList<>();
         for (T entity : entities) {
             List<String> values = new ArrayList<>();
-            for (String propertyName : propertyNames) {
+            for (PropertyMetadata<T> propertyMetadata : properties) {
                 // Get the relative entity property value with property name
-                values.add(getPropertyValue(entity, propertyName));
+                values.add(propertyMetadata.getCaptionProvider().apply(entity));
             }
 
             BeanContainer beanContainer = new BeanContainer();
             beanContainer.setId(entity.getId());
             beanContainer.setPropertyValues(values);
-            if (captionProperty != null) {
-                beanContainer.setCaption(getPropertyValue(entity, captionProperty));
+            if (captionProvider != null) { // The only case captionProvider is null is for the tables
+                beanContainer.setCaption(captionProvider.apply(entity));
             }
-
             beanContainers.add(beanContainer);
         }
 
@@ -74,6 +104,10 @@ public class BeanContainerUtils {
                     propertyName, entity.getClass().getSimpleName()), e);
         }
         return "";
+    }
+
+    public static <T extends BaseEntity> String getPropertyValue(BiFunction<T, String, String> captionValueExtractor, T entity, String propertyName) {
+        return captionValueExtractor.apply(entity, propertyName);
     }
 
     /**

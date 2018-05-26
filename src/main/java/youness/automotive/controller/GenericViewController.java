@@ -13,7 +13,11 @@ import youness.automotive.utils.BeanContainerUtils;
 import youness.automotive.utils.StringUtils;
 
 import java.security.InvalidParameterException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -56,22 +60,24 @@ public interface GenericViewController<T extends BaseEntity> {
     Class<T> getParentClass();
 
     /**
-     * The enntity name to be previewed on  create/edit/list views
+     * The title to be previewed on  create/edit/list views
      *
      * @return
      */
-    String getEntityName();
+    String getViewTitle();
 
     /**
-     * The ordered (by insert) map of column/property names and their captions that can be viewed on the list table's view
+     * The ordered list of columns/properties and their caption providers that will be used the list (table) view
+     * table's view
      * Also, these properties are used to build the Add or Edit (header part) view
      *
      * @return TODO make it through reflection/annotation as the default behaviour?
      */
-    LinkedHashMap<String, String> getPropertyMetadata();
+    List<PropertyMetadata<T>> getPropertyMetadata();
 
     /**
      * The linked property containers to be previewed on the view
+     * This represents the OneToMany relations in entity mapping
      *
      * @param beanId the optional bean/entity ID that the containers should be built for
      * @return
@@ -86,9 +92,11 @@ public interface GenericViewController<T extends BaseEntity> {
      *                       returned through;
      *                       {@link youness.automotive.controller.GenericViewController#getLinkedPropertyContainers})
      * @return the caption of the new added entity to be added to the table or null in case of any error
-     * @throws IllegalArgumentException when link with unique name is not recognized
+     * @throws IllegalArgumentException  when link with unique name is not recognized
+     * @throws InvalidParameterException when there is a business logic error
      */
-    String handleSaveDataLinkRequest(DataLinkRequestBean bean, String linkUniqueName) throws IllegalArgumentException;
+    String handleSaveDataLinkRequest(DataLinkRequestBean bean, String linkUniqueName) throws IllegalArgumentException,
+            InvalidParameterException;
 
     /**
      * The method to handle view responsible to list the entities in a table
@@ -100,12 +108,12 @@ public interface GenericViewController<T extends BaseEntity> {
     default String list(Model model) {
         List<T> entities = getRepository().findAll();
         List<BeanContainer> beanContainers =
-                BeanContainerUtils.createBeanContainers(entities, getPropertyNames(), null);
+                BeanContainerUtils.createBeanContainers(entities, getPropertyMetadata());
 
         // Used to populate row values in the view's table
         model.addAttribute("list", beanContainers);
         // Used to populate column names in the view's table
-        model.addAttribute("entityPropertyNames", getColumnCaptions());
+        model.addAttribute("entityPropertyNames", getColumnTitles());
         // TODO make above attributes into one
 
         String title = getListTitle();
@@ -124,7 +132,7 @@ public interface GenericViewController<T extends BaseEntity> {
         T entity = BeanUtils.instantiateClass(getParentClass());
         model.addAttribute("bean", entity);
 
-        populatePageMetadata(model, "Add " + getEntityName());
+        populatePageMetadata(model, "Add " + getViewTitle());
         populatePropertyMetadata(model, entity);
         return getAlterViewPath();
     }
@@ -135,22 +143,14 @@ public interface GenericViewController<T extends BaseEntity> {
         if (optional.isPresent()) {
             T entity = optional.get();
             model.addAttribute("bean", entity);
+
+            populatePageMetadata(model, "Edit " + getViewTitle());
             populatePropertyMetadata(model, entity);
-
-            List<LinkedPropertyContainer> linkedPropertyContainers = getLinkedPropertyContainers(beanId);
-            linkedPropertyContainers.forEach(container -> {
-                container.setParentType(getParentClass().getSimpleName());
-                container.setParentId(beanId);
-            });
-            model.addAttribute("linkedPropertyContainers",
-                    linkedPropertyContainers == null ? new ArrayList<>() : linkedPropertyContainers);
-
-            populatePageMetadata(model, "Edit " + getEntityName());
+            populateLinkedProperties(model, beanId);
             return getAlterViewPath();
         } else {
             return getErrorViewPath();
         }
-
     }
 
     @RequestMapping(value = "/save", method = RequestMethod.POST)
@@ -198,7 +198,16 @@ public interface GenericViewController<T extends BaseEntity> {
             assert linkUniqueName.equals(selectedValue.split("=")[0]);
             String childStringId = selectedValue.split("=")[1];
             bean = new DataLinkRequestBean(Long.parseLong(ownerStringId), Long.parseLong(childStringId));
-            String responseString = handleSaveDataLinkRequest(bean, linkUniqueName);
+
+            String responseString;
+            try {
+                responseString = handleSaveDataLinkRequest(bean, linkUniqueName);
+            } catch (InvalidParameterException e) {
+                DataLinkResponseBean result = new DataLinkResponseBean();
+                result.setMessage(e.getMessage());
+                result.setError(true);
+                return ResponseEntity.ok(result);
+            }
 
             DataLinkResponseBean result = new DataLinkResponseBean();
             if (responseString != null) {
@@ -234,13 +243,11 @@ public interface GenericViewController<T extends BaseEntity> {
     }
 
     default List<String> getPropertyNames() {
-        // though the returned set is guaranteed to maintain insertion order, we convert to list just to emphasize
-        // the order fact
-        return new ArrayList<>(getPropertyMetadata().keySet());
+        return getPropertyMetadata().stream().map(PropertyMetadata::getName).collect(Collectors.toList());
     }
 
-    default Collection<String> getColumnCaptions() {
-        return getPropertyMetadata().values();
+    default Collection<String> getColumnTitles() {
+        return getPropertyMetadata().stream().map(PropertyMetadata::getTitle).collect(Collectors.toList());
     }
 
     default void populatePageMetadata(Model model, String title) {
@@ -248,17 +255,43 @@ public interface GenericViewController<T extends BaseEntity> {
     }
 
     default void populatePropertyMetadata(Model model, T entity) {
-        List<PropertyContainer> propertyContainers = new ArrayList<>();
-        getPropertyMetadata().forEach((propertyName, propertyCaption) -> {
-            PropertyContainer propertyContainer = new PropertyContainer(propertyName, propertyCaption);
-            propertyContainer.setPropertyValue(BeanContainerUtils.getPropertyValue(entity, propertyName));
+        model.addAttribute("propertyContainers", getPropertyContainers(entity));
+    }
+
+    default void populateLinkedProperties(Model model, Long beanId) {
+        List<LinkedPropertyContainer> linkedPropertyContainers = getLinkedPropertyContainers(beanId);
+        // Update the containers
+        if (linkedPropertyContainers != null) {
+            linkedPropertyContainers.forEach(container -> {
+                container.setParentType(getParentClass().getSimpleName());
+                container.setParentId(beanId);
+            });
+        }
+        model.addAttribute("linkedPropertyContainers",
+                linkedPropertyContainers == null ? new ArrayList<>() : linkedPropertyContainers);
+    }
+
+    /**
+     * The containers to be populated on alter (edit/add) page
+     * Make sure that what ever you put as the container property name and value should be compatible with the entity
+     * as thymleaf use those information to automatically deserialize the bean when save button is clicked (save
+     * method is called)
+     *
+     * @param entity
+     * @return
+     */
+    default List<GenericPropertyContainer> getPropertyContainers(T entity) {
+        List<GenericPropertyContainer> propertyContainers = new ArrayList<>();
+        getPropertyMetadata().forEach((property) -> {
+            PropertyContainer propertyContainer = new PropertyContainer(property.getName(), property.getTitle());
+            propertyContainer.setPropertyValue(BeanContainerUtils.getPropertyValue(entity, property.getName()));
             propertyContainers.add(propertyContainer);
         });
-        model.addAttribute("propertyContainers", propertyContainers);
+        return propertyContainers;
     }
 
     default String getListTitle() {
-        return StringUtils.pluralize(StringUtils.capitalizeFirstLetters(getEntityName()));
+        return StringUtils.pluralize(StringUtils.capitalizeFirstLetters(getViewTitle()));
     }
 
     default String getView(String viewName) {

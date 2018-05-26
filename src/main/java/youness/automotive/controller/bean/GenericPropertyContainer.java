@@ -6,9 +6,18 @@ package youness.automotive.controller.bean;
  * <p>
  * The generic bean that acts as a container to hold property names and their captions to be sent to view
  */
-public class GenericPropertyContainer {
-    private String propertyCaption;
+public abstract class GenericPropertyContainer {
+
+    /**
+     * The mapping entity's attribute name
+     * It should be exactly same name as the entity's attribute name
+     */
     private String propertyName;
+
+    /**
+     * The caption for the property
+     */
+    private String propertyCaption;
 
     public GenericPropertyContainer(String propertyName, String propertyCaption) {
         this.propertyName = propertyName;
@@ -30,5 +39,13 @@ public class GenericPropertyContainer {
     public void setPropertyName(String propertyName) {
         this.propertyName = propertyName;
     }
+
+    /**
+     * Represents the type of this container.
+     * It is used on the view to decide the proper UI component (and therefore to read specific properties related to each type)
+     *
+     * @return
+     */
+    public abstract String getType();
 
 }

@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import youness.automotive.controller.bean.DataLinkRequestBean;
 import youness.automotive.controller.bean.LinkedPropertyContainer;
 import youness.automotive.controller.bean.PropertyContainer;
+import youness.automotive.controller.bean.PropertyMetadata;
 import youness.automotive.repository.CarTypeRepository;
 import youness.automotive.repository.MaintenanceTypeRepository;
 import youness.automotive.repository.model.CarType;
@@ -14,8 +15,8 @@ import youness.automotive.repository.model.MaintenanceType;
 import youness.automotive.utils.BeanContainerUtils;
 
 import javax.annotation.PostConstruct;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 
 @Controller
@@ -48,15 +49,15 @@ public class CarTypeController implements GenericViewController<CarType> {
     }
 
     @Override
-    public String getEntityName() {
+    public String getViewTitle() {
         return "car type";
     }
 
     @Override
-    public LinkedHashMap<String, String> getPropertyMetadata() {
-        LinkedHashMap<String, String> map = new LinkedHashMap<>();
-        map.put("name", "Name");
-        return map;
+    public List<PropertyMetadata<CarType>> getPropertyMetadata() {
+        List<PropertyMetadata<CarType>> list = new ArrayList<>();
+        list.add(new PropertyMetadata<>("name", "Name", CarType::getName));
+        return list;
     }
 
     @Override
@@ -83,8 +84,7 @@ public class CarTypeController implements GenericViewController<CarType> {
 
     private void populateSelectableValues(LinkedPropertyContainer linkedPropertyContainer) {
         linkedPropertyContainer.setBeanContainers(BeanContainerUtils.createBeanContainers(maintenanceTypeRepository.findAll(),
-                Collections.singletonList("name"),
-                "name"));
+                new PropertyMetadata<MaintenanceType>("name", "Name", MaintenanceType::getName)));
     }
 
     @Override

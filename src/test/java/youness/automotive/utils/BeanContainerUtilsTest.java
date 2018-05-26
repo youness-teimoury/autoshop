@@ -4,6 +4,7 @@ import org.hamcrest.CoreMatchers;
 import org.hamcrest.collection.IsCollectionWithSize;
 import org.junit.Test;
 import youness.automotive.controller.bean.BeanContainer;
+import youness.automotive.controller.bean.PropertyMetadata;
 import youness.automotive.repository.model.MaintenanceType;
 
 import java.util.Collections;
@@ -25,8 +26,7 @@ public class BeanContainerUtilsTest {
 
         // Act
         List<BeanContainer> list = BeanContainerUtils.createBeanContainers(Collections.singletonList(maintenanceType),
-                Collections.singletonList("name"),
-                "name");
+                new PropertyMetadata<>("name", "Name", MaintenanceType::getName));
 
         // Assert
         assertThat(list, CoreMatchers.notNullValue());

@@ -1,8 +1,11 @@
 package youness.automotive.repository.model;
 
 
+import org.springframework.format.annotation.DateTimeFormat;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -19,20 +22,23 @@ import java.util.Set;
 public class MaintenanceJob extends BaseEntity {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "car_id")
     private Car car;
 
     @NotNull
     @Temporal(TemporalType.DATE)
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date startDate = new Date();
 
     @Temporal(TemporalType.DATE)
-    private Date endDate = new Date();
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    private Date endDate;
 
     /**
      * The detailed tasks under this job
      * Initialization is to avoid boilerplate code to create(check, sync, create) the set in addTask method
      */
-    @OneToMany
+    @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private Set<MaintenanceTask> maintenanceTasks = new HashSet<>();
 
     public Car getCar() {
@@ -41,6 +47,9 @@ public class MaintenanceJob extends BaseEntity {
 
     public void setCar(Car car) {
         this.car = car;
+        if (!this.car.getMaintenanceJobs().contains(this)) {
+            this.car.addMaintenanceJob(this);
+        }
     }
 
     public Date getStartDate() {
@@ -70,5 +79,11 @@ public class MaintenanceJob extends BaseEntity {
     public void addTask(MaintenanceTask maintenanceTask) {
         this.maintenanceTasks.add(maintenanceTask);
         maintenanceTask.setMaintenanceJob(this);
+    }
+
+    @Override
+    public String toString() {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z");
+        return dateFormat.format(startDate) + " to " + (endDate == null ? "ongoing" : dateFormat.format(endDate));
     }
 }

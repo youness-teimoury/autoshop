@@ -1,6 +1,6 @@
 <!DOCTYPE HTML>
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <title th:text="${pageMetadata.title}">Temp Title</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
@@ -13,25 +13,58 @@
     <h3 th:text="${pageMetadata.title}">Temp Title</h3>
 
     <div class="row">
-        <div class="col-md-4">
+        <div>
             <form th:object="${bean}" th:action="@{save}" action="#" method="post">
                 <input type="hidden" th:field="*{id}" class="form-control"/>
+                <div class="row">
 
-                <div th:each="propertyContainer : ${propertyContainers}">
-                    <label th:text="${propertyContainer.propertyCaption}"></label>
-                    <input type="text"
-                           th:id="${propertyContainer.propertyName}"
-                           th:name="${propertyContainer.propertyName}"
-                           th:value="${propertyContainer.propertyValue}"
-                           class="form-control"
-                           th:placeholder="${propertyContainer.propertyCaption}"/>
-                    <div class="yns-space-div"></div>
+                    <div th:each="propertyContainer : ${propertyContainers}" class="col-md-4">
+                        <!--Decide the property type: single text box/comboBox/datetime so far-->
+                        <div th:switch="${propertyContainer.type}">
+                            <label th:text="${propertyContainer.propertyCaption}"></label>
+                            <div th:case="'datetime'">
+                                <input type="date"
+                                       th:id="${propertyContainer.propertyName}"
+                                       th:name="${propertyContainer.propertyName}"
+                                       th:value="${#dates.format(propertyContainer.propertyValue, 'yyyy-MM-dd')}"
+                                       class="form-control"
+                                       th:placeholder="${propertyContainer.propertyCaption}"/>
+                            </div>
+                            <div th:case="'text'">
+                                <input type="text"
+                                       th:id="${propertyContainer.propertyName}"
+                                       th:name="${propertyContainer.propertyName}"
+                                       th:value="${propertyContainer.propertyValue}"
+                                       class="form-control"
+                                       th:placeholder="${propertyContainer.propertyCaption}"/>
+                            </div>
+                            <div th:case="'combo'">
+                                <select th:id="${propertyContainer.propertyName}"
+                                        th:name="${propertyContainer.propertyName}"
+                                        th:value="${propertyContainer.propertyValue}"
+                                        class="form-control">
+                                    <option th:each="beanContainer : ${propertyContainer.beanContainers}"
+                                            th:value="${beanContainer.id}"
+                                            th:text="${beanContainer.caption}"
+                                            th:selected="${beanContainer.id == propertyContainer.propertyValue}">
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="yns-space-div"></div>
+                        </div>
+                    </div>
                 </div>
-                <input type="submit" class="btn btn-primary yns-bottom-margin" value="Save"></input>
+                <div class="yns-space-div"></div>
+                <div class="row">
+                    <div class="text-center">
+                        <input type="submit" class="btn btn-primary" value="Save"></input>
+                    </div>
+                </div>
             </form>
         </div>
     </div>
 
+    <div class="yns-space-div"></div>
     <div class="yns-space-div"></div>
     <div class="yns-space-div"></div>
 
@@ -57,7 +90,8 @@
                 <div class="row">
                     <form th:id="ayncPostForm_ + ${linkedPropertyContainer.propertyName}"
                           th:action="@{saveLink}" action="#" method="post">
-                        <div class="col-md-9">
+                        <!--Do not show the select if it is disabled-->
+                        <div th:if="${linkedPropertyContainer.isSelectEnabled()}" class="col-md-9">
                             <select th:id="asyncPostFormSelectField_ + ${linkedPropertyContainer.propertyName}"
                                     th:name="asyncPostFormSelectField_ + ${linkedPropertyContainer.propertyName}"
                                     th:value="${linkedPropertyContainer.childId}"
@@ -83,7 +117,9 @@
                                th:name="asyncPostFormChildFieldType_ + ${linkedPropertyContainer.propertyName}"
                                th:value="${linkedPropertyContainer.childType}"
                                type="hidden"/>
-                        <input type="submit" name="action" class="col-md-3 btn btn-primary"
+                        <!--Do not show the submit button if the select is disabled-->
+                        <input th:if="${linkedPropertyContainer.isSelectEnabled()}" type="submit" name="action"
+                               class="col-md-3 btn btn-primary"
                                value="Add & save"></input>
                     </form>
                 </div>

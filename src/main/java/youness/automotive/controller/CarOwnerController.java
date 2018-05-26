@@ -8,10 +8,10 @@ import youness.automotive.controller.bean.DataLinkRequestBean;
 import youness.automotive.controller.bean.LinkedPropertyContainer;
 import youness.automotive.controller.bean.PropertyContainer;
 import youness.automotive.controller.bean.PropertyMetadata;
-import youness.automotive.repository.CarMakerRepository;
-import youness.automotive.repository.CarModelRepository;
-import youness.automotive.repository.model.CarMaker;
-import youness.automotive.repository.model.CarModel;
+import youness.automotive.repository.CarOwnerRepository;
+import youness.automotive.repository.CarRepository;
+import youness.automotive.repository.model.Car;
+import youness.automotive.repository.model.CarOwner;
 import youness.automotive.utils.BeanContainerUtils;
 
 import javax.annotation.PostConstruct;
@@ -24,18 +24,18 @@ import java.util.List;
  * www.youness-teimouri.com
  */
 @Controller
-@RequestMapping(CarMakerController.CONTROLLER_PATH)
-public class CarMakerController implements GenericViewController<CarMaker> {
-    private static final String CONTROLLER_NAME = "carMaker";
+@RequestMapping(CarOwnerController.CONTROLLER_PATH)
+public class CarOwnerController implements GenericViewController<CarOwner> {
+    private static final String CONTROLLER_NAME = "carOwner";
     static final String CONTROLLER_PATH = "/" + CONTROLLER_NAME;
 
-    private static final String CAR_MODELS_LINK_UNIQUE_NAME = "carModels";
+    private static final String CARS_LINK_UNIQUE_NAME = "cars";
 
     @Autowired
-    private CarMakerRepository repository;
+    private CarOwnerRepository repository;
 
     @Autowired
-    private CarModelRepository carModelRepository;
+    private CarRepository carRepository;
 
     @Override
     public String getRootViewName() {
@@ -43,32 +43,34 @@ public class CarMakerController implements GenericViewController<CarMaker> {
     }
 
     @Override
-    public JpaRepository<CarMaker, Long> getRepository() {
+    public JpaRepository<CarOwner, Long> getRepository() {
         return repository;
     }
 
     @Override
-    public Class<CarMaker> getParentClass() {
-        return CarMaker.class;
+    public Class<CarOwner> getParentClass() {
+        return CarOwner.class;
     }
 
     @Override
     public String getViewTitle() {
-        return "car maker";
+        return "car owner";
     }
 
     @Override
-    public List<PropertyMetadata<CarMaker>> getPropertyMetadata() {
-        List<PropertyMetadata<CarMaker>> list = new ArrayList<>();
-        list.add(new PropertyMetadata<>("name", "Name", CarMaker::getName));
+    public List<PropertyMetadata<CarOwner>> getPropertyMetadata() {
+        List<PropertyMetadata<CarOwner>> list = new ArrayList<>();
+        list.add(new PropertyMetadata<>("firstName", "First Name", CarOwner::getFirstName));
+        list.add(new PropertyMetadata<>("secondName", "Second Name", CarOwner::getSecondName));
+        list.add(new PropertyMetadata<>("phone", "Phone", CarOwner::getPhone));
         return list;
     }
 
     @Override
     public List<LinkedPropertyContainer> getLinkedPropertyContainers(Long beanId) {
         LinkedPropertyContainer linkedPropertyContainer =
-                new LinkedPropertyContainer(CAR_MODELS_LINK_UNIQUE_NAME, "Models");
-        linkedPropertyContainer.setChildType(CarModel.class.getSimpleName());
+                new LinkedPropertyContainer(CARS_LINK_UNIQUE_NAME, "Owning Cars");
+        linkedPropertyContainer.setChildType(Car.class.getSimpleName());
 
         // Populate existing values
         populateAlreadySetValues(linkedPropertyContainer, beanId);
@@ -77,33 +79,33 @@ public class CarMakerController implements GenericViewController<CarMaker> {
     }
 
     private void populateAlreadySetValues(LinkedPropertyContainer linkedPropertyContainer, Long beanId) {
-        CarMaker carMaker = repository.getOne(beanId);
-        carMaker.getCarModels().forEach(e -> {
+        CarOwner carOwner = repository.getOne(beanId);
+        carOwner.getCars().forEach(e -> {
             PropertyContainer propertyContainer = new PropertyContainer("name", "Name");
-            propertyContainer.setPropertyValue(e.getName());
+            propertyContainer.setPropertyValue(e.toString());
             linkedPropertyContainer.addPropertyContainer(propertyContainer);
         });
     }
 
     private void populateSelectableValues(LinkedPropertyContainer linkedPropertyContainer) {
-        linkedPropertyContainer.setBeanContainers(BeanContainerUtils.createBeanContainers(carModelRepository.findAll(),
-                new PropertyMetadata<>("name", "Name", CarModel::getName)));
+        linkedPropertyContainer.setBeanContainers(BeanContainerUtils.createBeanContainers(carRepository.findAll(),
+                new PropertyMetadata<>("name", "Name", Car::toString)));
     }
 
     @Override
     public String handleSaveDataLinkRequest(DataLinkRequestBean bean, String linkUniqueName)
             throws IllegalArgumentException {
-        if (!CAR_MODELS_LINK_UNIQUE_NAME.matches(linkUniqueName)) {
+        if (!CARS_LINK_UNIQUE_NAME.matches(linkUniqueName)) {
             throw new IllegalArgumentException("Link name is not recognized");
         }
 
-        CarMaker ownerEntity = repository.getOne(bean.getParentEntityId());
-        CarModel childEntity = carModelRepository.getOne(bean.getChildEntityId());
+        CarOwner ownerEntity = repository.getOne(bean.getParentEntityId());
+        Car childEntity = carRepository.getOne(bean.getChildEntityId());
 
-        if (!ownerEntity.getCarModels().contains(childEntity)) {
-            ownerEntity.addCarModel(childEntity);
+        if (!ownerEntity.getCars().contains(childEntity)) {
+            ownerEntity.addCar(childEntity);
             repository.save(ownerEntity);
-            return childEntity.getName();
+            return childEntity.toString();
         } else {
             return null;
         }
@@ -112,16 +114,11 @@ public class CarMakerController implements GenericViewController<CarMaker> {
     // TODO remove
     @PostConstruct
     public void populateSomeTypesForTest() {
-        CarMaker f = new CarMaker();
-        f.setName("Toyota");
+        CarOwner f = new CarOwner();
+        f.setFirstName("Youness");
+        f.setSecondName("Teimouri");
+        f.setPhone("111111111");
         repository.save(f);
-        CarMaker f2 = new CarMaker();
-        f2.setName("BMW");
-        repository.save(f2);
-        CarMaker f3 = new CarMaker();
-        f3.setName("Tesla");
-        repository.save(f3);
     }
-
 
 }

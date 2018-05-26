@@ -21,14 +21,17 @@
         <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">Menu
             <span class="caret"></span></button>
         <ul class="dropdown-menu">
-            <li class="dropdown-header">Definitions</li>
-            <li><a th:href="@{~/maintenanceType/list}">Maintenance Types</a></li>
-            <li><a th:href="@{~/carType/list}">Car Types</a></li>
-            <li><a th:href="@{~/carMaker/list}">Car Makers</a></li>
-            <li><a th:href="@{~/carModel/list}">Car Models</a></li>
+            <li class="dropdown-header">Maintenance Definitions</li>
+            <li><a th:href="@{~/maintenanceType/list}">Type</a></li>
+            <li class="dropdown-header">Car Definitions</li>
+            <li><a th:href="@{~/carType/list}">Type</a></li>
+            <li><a th:href="@{~/carMaker/list}">Maker</a></li>
+            <li><a th:href="@{~/carModel/list}">Model</a></li>
             <li class="divider"></li>
             <li class="dropdown-header">Customer Data</li>
-            <li><a th:href="@{~/car/list}">Cars</a></li>
+            <li><a th:href="@{~/carOwner/list}">Owner</a></li>
+            <li><a th:href="@{~/car/list}">Car</a></li>
+            <li><a th:href="@{~/maintenanceJob/list}">Maintenance Jobs</a></li>
         </ul>
     </div>
     <div class="col-md-1 yns-top-button-padding">

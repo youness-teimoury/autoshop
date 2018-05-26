@@ -10,7 +10,7 @@ import java.util.List;
  * Used as a container to maintain each entity's linked property information
  * Imagine if an owner has some cars. Then we can use this container to maintain the cars for the owner.
  */
-public class LinkedPropertyContainer extends GenericPropertyContainer {
+public class LinkedPropertyContainer extends GenericPropertyContainer implements SelectableContainerHolder {
     /**
      * Maintains the initial/existing values (link values) form the target entity in owning entity
      */
@@ -42,12 +42,22 @@ public class LinkedPropertyContainer extends GenericPropertyContainer {
     private String childType;
 
     /**
+     * Decides if the select (combobox) can bbe previewed or not (default is true)
+     */
+    private boolean isSelectEnabled = true;
+
+    /**
      * @param propertyName    used as the id of the table in view
      *                        this property should be unique in the scope of each controller
      * @param propertyCaption used as the label on top of the table in view
      */
     public LinkedPropertyContainer(String propertyName, String propertyCaption) {
         super(propertyName, propertyCaption);
+    }
+
+    @Override
+    public String getType() {
+        return "table";
     }
 
     public List<PropertyContainer> getPropertyContainers() {
@@ -100,5 +110,13 @@ public class LinkedPropertyContainer extends GenericPropertyContainer {
 
     public void setChildType(String childType) {
         this.childType = childType;
+    }
+
+    public boolean isSelectEnabled() {
+        return isSelectEnabled;
+    }
+
+    public void setSelectEnabled(boolean selectEnabled) {
+        isSelectEnabled = selectEnabled;
     }
 }

@@ -31,6 +31,6 @@ reselected)
 * Refactor reserved words and constants + documentation
 
 Installation & run
-git clone https://github.com/youness-teimoury/autoshop
-cd autoshop
-mvn spring-boot:run
+* git clone https://github.com/youness-teimoury/autoshop
+* cd autoshop
+* mvn spring-boot:run

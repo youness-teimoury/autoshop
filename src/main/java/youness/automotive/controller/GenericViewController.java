@@ -131,8 +131,11 @@ public interface GenericViewController<T extends BaseEntity> {
     @RequestMapping("/add")
     default String add(Model model) {
         T entity = BeanUtils.instantiateClass(getParentClass());
-        model.addAttribute("bean", entity);
+        return setupAddModelAndReturnAlterView(entity, model);
+    }
 
+    default String setupAddModelAndReturnAlterView(T entity, Model model) {
+        model.addAttribute("bean", entity);
         populatePageMetadata(model, "Add " + getViewTitle());
         populatePropertyMetadata(model, entity);
         return getAlterViewPath();

@@ -67,9 +67,10 @@ public class MaintenanceTaskController implements GenericViewController<Maintena
                 "Job",
                 maintenanceTask -> maintenanceTask.getMaintenanceJob().toString()).withTransient(true));
         list.add(new PropertyMetadata<>("type", "Type", maintenanceTask -> maintenanceTask.getType().getName()));
-        list.add(new PropertyMetadata<>("customer",
+        list.add(new PropertyMetadata<MaintenanceTask>("customer",
                 "Customer",
-                maintenanceTask -> maintenanceTask.getMaintenanceJob().getCar().getOwner().toString()));
+                maintenanceTask -> maintenanceTask.getMaintenanceJob().getCar().getOwner().toString()).withTransient
+                (true));
         list.add(new PropertyMetadata<>("car",
                 "Car",
                 maintenanceTask -> maintenanceTask.getMaintenanceJob().getCar().toString()));
@@ -135,16 +136,11 @@ public class MaintenanceTaskController implements GenericViewController<Maintena
     }
 
     @RequestMapping(value = "/" + ADD_TASK_FOR_JOB_RELATIVE_PATH)
-    public String addTask(@RequestParam(ADD_TASK_FOR_JOB_PARAM_NAME) Long jobId, Model model) {// todo make constant
+    public String addTask(@RequestParam(ADD_TASK_FOR_JOB_PARAM_NAME) Long jobId, Model model) {
         MaintenanceJob job = maintenanceJobRepository.getOne(jobId);
-
         MaintenanceTask entity = new MaintenanceTask();
         entity.setMaintenanceJob(job);
 
-        model.addAttribute("bean", entity);// todo make bean constant
-        populatePageMetadata(model, "Add " + getViewTitle());
-        populatePropertyMetadata(model, entity);
-
-        return getAlterViewPath();
+        return setupAddModelAndReturnAlterView(entity, model);
     }
 }

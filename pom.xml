@@ -33,12 +33,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
-        <!--Used as part of Thymeleaf-->
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>gs-handling-form-submission</artifactId>
-            <version>0.1.0</version>
-        </dependency>
         <!--Spring security-->
         <dependency>
             <groupId>org.springframework.boot</groupId>

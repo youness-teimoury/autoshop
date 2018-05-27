@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <title>Chat Server</title>
+    <title>Youness Teimouri</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <link type="text/css" rel="stylesheet" th:href="@{~/css/main.css}"/>
     <link type="text/css" rel="stylesheet" th:href="@{~/css/bootstrap.min.css}"/>
@@ -29,6 +29,8 @@
         }
 
 
+
+
     </style>
 </head>
 <body bgcolor="#f0d5d2">
@@ -44,13 +46,19 @@
             <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">Menu
                 <span class="caret"></span></button>
             <ul class="dropdown-menu">
-                <li class="dropdown-header">Definitions</li>
-                <li><a th:href="@{~/maintenanceType/list}">Maintenance Types</a></li>
-                <li><a th:href="@{~/carType/list}">Car Types</a></li>
-                <li><a th:href="@{~/carMaker/list}">Car Makers</a></li>
+                <li class="dropdown-header">Maintenance Definitions</li>
+                <li><a th:href="@{~/maintenanceType/list}">Type</a></li>
+                <li class="dropdown-header">Car Definitions</li>
+                <li><a th:href="@{~/carType/list}">Type</a></li>
+                <li><a th:href="@{~/carMaker/list}">Maker</a></li>
+                <li><a th:href="@{~/carModel/list}">Model</a></li>
                 <li class="divider"></li>
                 <li class="dropdown-header">Customer Data</li>
-                <li><a th:href="@{~/car/list}">Cars</a></li>
+                <li><a th:href="@{~/carOwner/list}">Owner</a></li>
+                <li><a th:href="@{~/car/list}">Car</a></li>
+                <li class="dropdown-header">Maintenance Info</li>
+                <li><a th:href="@{~/maintenanceJob/list}">Jobs</a></li>
+                <li><a th:href="@{~/maintenanceTask/list}">Tasks</a></li>
             </ul>
         </div>
     </footer>

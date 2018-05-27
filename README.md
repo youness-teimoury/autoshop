@@ -9,15 +9,15 @@ Tech stack:
 * Thymeleaf
 
 Tech debts:
-* Selenium tests for the CRUD UI functioalties 
-* More refactor to remove redundant/derrivale configurations
+* Selenium tests for the CRUD UI functionaries
+* More refactor to remove redundant/derivable configurations
 * Add date input compatible containers
-* Refactor/add espicifi purose exception classes
+* Refactor/add especial purpose exception classes
 * Add search/filter to views
 * Add business logic
 * Security and role management
 * Improving the UX for exceptions and errors
-* Improving the loggin mechanism and log separation
+* Improving the log mechanism and log separation
 * Adding a view only page and putting the link on table row (user can navigate to view by clicking on the table row)
 * Table sort on column (bootstrap)
 * Improving the user interface
@@ -25,3 +25,8 @@ Tech debts:
 * Let user to add links (oneToMany) when creating (add) a new entity
 * Address the TODOs in the API
 * Refactor reserved words and constants + documentation
+
+Installation & run
+git clone https://github.com/youness-teimoury/autoshop
+cd autoshop
+mvn spring-boot:run

@@ -6,19 +6,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import youness.automotive.controller.bean.BeanContainer;
-import youness.automotive.controller.bean.DataLinkRequestBean;
-import youness.automotive.controller.bean.DataLinkResponseBean;
-import youness.automotive.controller.bean.GenericPropertyContainer;
-import youness.automotive.controller.bean.LinkedPropertyContainer;
-import youness.automotive.controller.bean.PageMetaData;
-import youness.automotive.controller.bean.PropertyContainer;
-import youness.automotive.controller.bean.PropertyMetadata;
+import org.springframework.web.bind.annotation.*;
+import youness.automotive.controller.bean.*;
 import youness.automotive.repository.model.BaseEntity;
 import youness.automotive.utils.BeanContainerUtils;
 import youness.automotive.utils.StringUtils;
@@ -38,8 +27,7 @@ import java.util.stream.Stream;
  * <p>
  * The generic interface used on controller that want to use the automated list and edit view creation
  *
- * @param <T>
- *         the entity type
+ * @param <T> the entity type
  */
 public interface GenericViewController<T extends BaseEntity> {
     String SELECT_POST_FORM_VALUE_PREFIX = "asyncPostFormSelectField_";
@@ -92,8 +80,7 @@ public interface GenericViewController<T extends BaseEntity> {
      * The linked property containers to be previewed on the view
      * This represents the OneToMany relations in entity mapping
      *
-     * @param beanId
-     *         the optional bean/entity ID that the containers should be built for
+     * @param beanId the optional bean/entity ID that the containers should be built for
      * @return
      */
     List<LinkedPropertyContainer> getLinkedPropertyContainers(Long beanId);
@@ -101,17 +88,13 @@ public interface GenericViewController<T extends BaseEntity> {
     /**
      * Should save the link between entities according to the bean value
      *
-     * @param bean
-     *         Represents the request bean that is parsed from save link request to join a child link to its parent
-     * @param linkUniqueName
-     *         the unique name set on LinkedPropertyContainer's propertyName when containers were created and
-     *         returned through;
-     *         {@link youness.automotive.controller.GenericViewController#getLinkedPropertyContainers})
+     * @param bean           Represents the request bean that is parsed from save link request to join a child link to its parent
+     * @param linkUniqueName the unique name set on LinkedPropertyContainer's propertyName when containers were created and
+     *                       returned through;
+     *                       {@link youness.automotive.controller.GenericViewController#getLinkedPropertyContainers})
      * @return the caption of the new added entity to be added to the table or null in case of any error
-     * @throws IllegalArgumentException
-     *         when link with unique name is not recognized
-     * @throws InvalidParameterException
-     *         when there is a business logic error
+     * @throws IllegalArgumentException  when link with unique name is not recognized
+     * @throws InvalidParameterException when there is a business logic error
      */
     String handleSaveDataLinkRequest(DataLinkRequestBean bean, String linkUniqueName)
             throws IllegalArgumentException, InvalidParameterException;
@@ -133,6 +116,7 @@ public interface GenericViewController<T extends BaseEntity> {
         model.addAttribute("entityPropertyNames", getColumnTitles());
         // TODO make above attributes into one
 
+        model.addAttribute("menuActions", getOptionalActions());
         String title = getListTitle();
         populatePageMetadata(model, title);
         return getListViewPath();
@@ -268,7 +252,9 @@ public interface GenericViewController<T extends BaseEntity> {
     }
 
     default List<String> getPropertyNames() {
-        return getPropertyMetadata().stream().map(PropertyMetadata::getName).collect(Collectors.toList());
+        return getPropertyMetadata().stream().filter(
+                propertyMetadata -> !propertyMetadata.isTransient())
+                .map(PropertyMetadata::getName).collect(Collectors.toList());
     }
 
     default Collection<String> getColumnTitles() {
@@ -354,4 +340,14 @@ public interface GenericViewController<T extends BaseEntity> {
     default void validateBeforeSave(T bean) throws ValidationException {
 
     }
+
+    /**
+     * The list of optional actions that can be added to each ro on the list table
+     *
+     * @return
+     */
+    default List<MenuAction> getOptionalActions() {
+        return new ArrayList<>();
+    }
+
 }

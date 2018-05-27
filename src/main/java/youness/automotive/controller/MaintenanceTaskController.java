@@ -3,16 +3,14 @@ package youness.automotive.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
-import youness.automotive.controller.bean.ComboPropertyContainer;
-import youness.automotive.controller.bean.DataLinkRequestBean;
-import youness.automotive.controller.bean.GenericPropertyContainer;
-import youness.automotive.controller.bean.LinkedPropertyContainer;
-import youness.automotive.controller.bean.PropertyContainer;
-import youness.automotive.controller.bean.PropertyMetadata;
+import org.springframework.web.bind.annotation.RequestParam;
+import youness.automotive.controller.bean.*;
 import youness.automotive.repository.MaintenanceJobRepository;
 import youness.automotive.repository.MaintenanceTaskRepository;
 import youness.automotive.repository.MaintenanceTypeRepository;
+import youness.automotive.repository.model.MaintenanceJob;
 import youness.automotive.repository.model.MaintenanceTask;
 import youness.automotive.repository.model.MaintenanceType;
 import youness.automotive.utils.BeanContainerUtils;
@@ -29,9 +27,10 @@ import java.util.Set;
 @Controller
 @RequestMapping(MaintenanceTaskController.CONTROLLER_PATH)
 public class MaintenanceTaskController implements GenericViewController<MaintenanceTask> {
+    public static final String ADD_TASK_FOR_JOB_RELATIVE_PATH = "addToJob";
+    public static final String ADD_TASK_FOR_JOB_PARAM_NAME = "jobId";
     private static final String CONTROLLER_NAME = "maintenanceTask";
     static final String CONTROLLER_PATH = "/" + CONTROLLER_NAME;
-
     @Autowired
     private MaintenanceTaskRepository repository;
 
@@ -64,13 +63,16 @@ public class MaintenanceTaskController implements GenericViewController<Maintena
     @Override
     public List<PropertyMetadata<MaintenanceTask>> getPropertyMetadata() {
         List<PropertyMetadata<MaintenanceTask>> list = new ArrayList<>();
+        list.add(new PropertyMetadata<MaintenanceTask>("job",
+                "Job",
+                maintenanceTask -> maintenanceTask.getMaintenanceJob().toString()).withTransient(true));
         list.add(new PropertyMetadata<>("type", "Type", maintenanceTask -> maintenanceTask.getType().getName()));
         list.add(new PropertyMetadata<>("customer",
                 "Customer",
                 maintenanceTask -> maintenanceTask.getMaintenanceJob().getCar().getOwner().toString()));
-        list.add(new PropertyMetadata<>("job",
-                "Job",
-                maintenanceTask -> maintenanceTask.getMaintenanceJob().toString()));
+        list.add(new PropertyMetadata<>("car",
+                "Car",
+                maintenanceTask -> maintenanceTask.getMaintenanceJob().getCar().toString()));
         list.add(new PropertyMetadata<>("description", "Description", MaintenanceTask::getDescription));
         list.add(new PropertyMetadata<>("charge",
                 "Charge",
@@ -130,5 +132,19 @@ public class MaintenanceTaskController implements GenericViewController<Maintena
         if (!applicableMaintenanceTypes.contains(newTaskType)) {
             throw new ValidationException("The maintenance is not applicable to the selected car.");
         }
+    }
+
+    @RequestMapping(value = "/" + ADD_TASK_FOR_JOB_RELATIVE_PATH)
+    public String addTask(@RequestParam(ADD_TASK_FOR_JOB_PARAM_NAME) Long jobId, Model model) {// todo make constant
+        MaintenanceJob job = maintenanceJobRepository.getOne(jobId);
+
+        MaintenanceTask entity = new MaintenanceTask();
+        entity.setMaintenanceJob(job);
+
+        model.addAttribute("bean", entity);// todo make bean constant
+        populatePageMetadata(model, "Add " + getViewTitle());
+        populatePropertyMetadata(model, entity);
+
+        return getAlterViewPath();
     }
 }

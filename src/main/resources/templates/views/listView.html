@@ -59,6 +59,14 @@
                         <td th:text="${propertyValue}"></td>
                     </th:block>
                     <td class="col-md-2">
+                        <!--Populate the extra actions-->
+                        <th:block th:each="menuAction : ${menuActions}">
+                            <a th:href="@{${menuAction.relativeUrlPath}(id=${beanContainer.id})}"
+                               class="btn btn-primary btn-xs">
+                                <div th:text="${menuAction.caption}"></div>
+                            </a>
+                        </th:block>
+                        <!--Populate the standard actions-->
                         <a th:href="@{edit(id=${beanContainer.id})}" class="btn btn-primary btn-xs">Edit</a>
                         <a th:href="@{delete/{id}(id=${beanContainer.id})}" class="btn btn-danger btn-xs"
                            onclick="return confirm('This will delete the item.\nAre you sure to continue?');">Delete</a>

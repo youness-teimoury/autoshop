@@ -3,14 +3,10 @@ package youness.automotive.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
-import youness.automotive.controller.bean.ComboPropertyContainer;
-import youness.automotive.controller.bean.DataLinkRequestBean;
-import youness.automotive.controller.bean.DateTimePropertyContainer;
-import youness.automotive.controller.bean.GenericPropertyContainer;
-import youness.automotive.controller.bean.LinkedPropertyContainer;
-import youness.automotive.controller.bean.PropertyContainer;
-import youness.automotive.controller.bean.PropertyMetadata;
+import org.springframework.web.bind.annotation.RequestParam;
+import youness.automotive.controller.bean.*;
 import youness.automotive.repository.CarRepository;
 import youness.automotive.repository.MaintenanceJobRepository;
 import youness.automotive.repository.MaintenanceTaskRepository;
@@ -37,6 +33,11 @@ public class MaintenanceJobController implements GenericViewController<Maintenan
     static final String CONTROLLER_PATH = "/" + CONTROLLER_NAME;
 
     private static final String MAINTENANCE_TASKS_LINK_UNIQUE_NAME = "maintenanceTasks";
+
+    /**
+     * The relative path to add tasks on job
+     */
+    private static final String ADD_TASK_RELATIVE_PATH = "addTask";
 
     @Autowired
     private MaintenanceJobRepository repository;
@@ -165,4 +166,16 @@ public class MaintenanceJobController implements GenericViewController<Maintenan
         }
     }
 
+    @Override
+    public List<MenuAction> getOptionalActions() {
+        return Collections.singletonList(new MenuAction("Add Task", ADD_TASK_RELATIVE_PATH));
+    }
+
+    @RequestMapping(value = "/" + ADD_TASK_RELATIVE_PATH)
+    public String addTask(@RequestParam("id") Long beanId, Model model) {
+        return String.format("redirect:%s/%s?%s=%d",
+                MaintenanceTaskController.CONTROLLER_PATH,
+                MaintenanceTaskController.ADD_TASK_FOR_JOB_RELATIVE_PATH,
+                MaintenanceTaskController.ADD_TASK_FOR_JOB_PARAM_NAME, beanId);
+    }
 }

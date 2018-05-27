@@ -11,8 +11,12 @@ Tech stack:
 Tech debts:
 * Selenium tests for the CRUD UI functionaries
 * More refactor to remove redundant/derivable configurations
+* Improve bean validators
 * Add date input compatible containers
 * Refactor/add especial purpose exception classes
+* Bind data containers and register them together. This way, you can make real-time ajax calls to refresh data when a
+dependant data-container's value changes (e.g. show only the list of applicable maintenance types when a car is
+reselected)
 * Add search/filter to views
 * Add business logic
 * Security and role management

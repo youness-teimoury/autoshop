@@ -63,7 +63,7 @@ public class MaintenanceTypeController implements GenericViewController<Maintena
     @Override
     public List<LinkedPropertyContainer> getLinkedPropertyContainers(Long beanId) {
         LinkedPropertyContainer linkedPropertyContainer =
-                new LinkedPropertyContainer(CAR_TYPES_LINK_UNIQUE_NAME, "Car types");
+                new LinkedPropertyContainer(CAR_TYPES_LINK_UNIQUE_NAME, "Applicable to car types");
         linkedPropertyContainer.setChildType(CarType.class.getSimpleName());
 
         // Populate existing values

@@ -9,7 +9,7 @@ import java.util.Date;
  * www.youness-teimouri.com
  */
 public class DateUtils {
-    private static final String DATE_PATTERN = "yyyy-MM-dd HH:mm a";
+    private static final String DATE_PATTERN = "yyyy-MM-dd";
 
     public static String format(Date date) {
         SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_PATTERN);

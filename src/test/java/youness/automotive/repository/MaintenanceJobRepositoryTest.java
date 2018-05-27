@@ -80,7 +80,7 @@ public class MaintenanceJobRepositoryTest {
     }
 
     @Test
-    public void shouldSaveTransiaentMaintenanceTaskWhenMaintenanceJobIsSaved() {
+    public void shouldSaveTransientMaintenanceTaskWhenMaintenanceJobIsSaved() {
         // Arrange
         MaintenanceJob maintenanceJob = new MaintenanceJob();
         Car car = testUtils.createAndSaveCar();
@@ -100,6 +100,5 @@ public class MaintenanceJobRepositoryTest {
         assertThat(fetchedMaintenanceJobs, CoreMatchers.notNullValue());
         assertThat(fetchedMaintenanceJobs, IsCollectionWithSize.hasSize(1));
         assertThat(fetchedMaintenanceJobs.get(0).getMaintenanceTasks(), IsCollectionWithSize.hasSize(1));
-
     }
 }

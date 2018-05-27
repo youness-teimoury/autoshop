@@ -10,11 +10,18 @@ public class PageMetaData {
 
     private final String title;
 
-    public PageMetaData(String title) {
+    private final String rootViewName; //TODO remove
+
+    public PageMetaData(String title, String rootViewName) {
         this.title = title;
+        this.rootViewName = rootViewName;
     }
 
     public String getTitle() {
         return title;
+    }
+
+    public String getRootViewName() {
+        return rootViewName;
     }
 }

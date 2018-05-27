@@ -4,7 +4,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-import youness.automotive.controller.bean.*;
+import youness.automotive.controller.bean.ComboPropertyContainer;
+import youness.automotive.controller.bean.DataLinkRequestBean;
+import youness.automotive.controller.bean.DateTimePropertyContainer;
+import youness.automotive.controller.bean.GenericPropertyContainer;
+import youness.automotive.controller.bean.LinkedPropertyContainer;
+import youness.automotive.controller.bean.PropertyContainer;
+import youness.automotive.controller.bean.PropertyMetadata;
 import youness.automotive.repository.CarRepository;
 import youness.automotive.repository.MaintenanceJobRepository;
 import youness.automotive.repository.MaintenanceTaskRepository;
@@ -64,15 +70,14 @@ public class MaintenanceJobController implements GenericViewController<Maintenan
     @Override
     public List<PropertyMetadata<MaintenanceJob>> getPropertyMetadata() {
         List<PropertyMetadata<MaintenanceJob>> list = new ArrayList<>();
-        list.add(new PropertyMetadata<>("startDate", "Start Date",
-                mj -> DateUtils.format(mj.getStartDate())));
-        list.add(new PropertyMetadata<>("endDate", "End Date",
+        list.add(new PropertyMetadata<>("startDate", "Start Date", mj -> DateUtils.format(mj.getStartDate())));
+        list.add(new PropertyMetadata<>("endDate",
+                "End Date",
                 mj -> mj.getEndDate() == null ? "ongoing" : DateUtils.format(mj.getEndDate())));
-        list.add(new PropertyMetadata<>("owner", "Owner",
-                mj -> mj.getCar().getOwner().toString()));
-        list.add(new PropertyMetadata<>("car", "Car",
-                mj -> mj.getCar().toString()));
-        list.add(new PropertyMetadata<>("charges", "Total",
+        list.add(new PropertyMetadata<>("owner", "Owner", mj -> mj.getCar().getOwner().toString()));
+        list.add(new PropertyMetadata<>("car", "Car", mj -> mj.getCar().toString()));
+        list.add(new PropertyMetadata<>("charges",
+                "Total",
                 mj -> String.valueOf(mj.getMaintenanceTasks().stream().mapToDouble(MaintenanceTask::getCharge).sum())));
         return list;
     }
@@ -82,13 +87,11 @@ public class MaintenanceJobController implements GenericViewController<Maintenan
         List<GenericPropertyContainer> propertyContainers = new ArrayList<>();
 
         // Name property container
-        DateTimePropertyContainer startDatePropertyContainer =
-                new DateTimePropertyContainer("startDate", "Start Date");
+        DateTimePropertyContainer startDatePropertyContainer = new DateTimePropertyContainer("startDate", "Start Date");
         startDatePropertyContainer.setPropertyValue(entity.getStartDate());
         propertyContainers.add(startDatePropertyContainer);
 
-        DateTimePropertyContainer endDatePropertyContainer =
-                new DateTimePropertyContainer("endDate", "End Date");
+        DateTimePropertyContainer endDatePropertyContainer = new DateTimePropertyContainer("endDate", "End Date");
         endDatePropertyContainer.setPropertyValue(entity.getEndDate());
         propertyContainers.add(endDatePropertyContainer);
 
@@ -96,10 +99,8 @@ public class MaintenanceJobController implements GenericViewController<Maintenan
         // that thymleaf can automatically handle the mapping to bean/entity when save button is hit
         ComboPropertyContainer carContainer = new ComboPropertyContainer("car", "Car");
         carContainer.setPropertyValue(entity.getCar() != null ? entity.getCar().getId() : null);
-        carContainer.setBeanContainers(
-                BeanContainerUtils.createBeanContainers(
-                        carRepository.findAll(), new PropertyMetadata<>("name", "Name",
-                                car -> car.toString() + " - " + car.getOwner().toString())));
+        carContainer.setBeanContainers(BeanContainerUtils.createBeanContainers(carRepository.findAll(),
+                new PropertyMetadata<>("name", "Name", car -> car.toString() + " - " + car.getOwner().toString())));
         propertyContainers.add(carContainer);
 
         return propertyContainers;
@@ -110,6 +111,7 @@ public class MaintenanceJobController implements GenericViewController<Maintenan
         LinkedPropertyContainer linkedPropertyContainer =
                 new LinkedPropertyContainer(MAINTENANCE_TASKS_LINK_UNIQUE_NAME, "Maintenance Tasks");
         linkedPropertyContainer.setChildType(MaintenanceTask.class.getSimpleName());
+        linkedPropertyContainer.setSelectEnabled(false);// because it does not make sense to add tasks this way
 
         // Populate existing values
         populateAlreadySetValues(linkedPropertyContainer, beanId);
@@ -119,29 +121,21 @@ public class MaintenanceJobController implements GenericViewController<Maintenan
 
     private void populateAlreadySetValues(LinkedPropertyContainer linkedPropertyContainer, Long beanId) {
         MaintenanceJob job = repository.getOne(beanId);
+        job.getMaintenanceTasks().forEach(t -> {
+                    PropertyContainer propertyContainer = new PropertyContainer("detail", "Detail");
+                    propertyContainer.setPropertyValue(
+                            t.getType().getName() + " - " + t.getDescription() + "" + "" + " - charge: " + t
+                                    .getCharge());
+                    linkedPropertyContainer.addPropertyContainer(propertyContainer);
+                }
 
-        List<PropertyMetadata<MaintenanceTask>> maintenanceTaskProperties = new ArrayList<>();
-        maintenanceTaskProperties.add(new PropertyMetadata<>("type", "Type",
-                maintenanceTask -> maintenanceTask.getType().getName()));
-        maintenanceTaskProperties.add(new PropertyMetadata<>("charge", "Charge",
-                maintenanceTask -> String.valueOf(maintenanceTask.getCharge())));
-        maintenanceTaskProperties.add(new PropertyMetadata<>("description", "Desc",
-                MaintenanceTask::getDescription));
-
-        // Iterate through maintenance task properties and data to add some maintenance task data under each job
-        maintenanceTaskProperties.forEach(p -> {
-            job.getMaintenanceTasks().forEach(maintenanceTask -> {
-                PropertyContainer propertyContainer = new PropertyContainer(p.getName(), p.getTitle());
-                propertyContainer.setPropertyValue(p.getCaptionProvider().apply(maintenanceTask));
-                linkedPropertyContainer.addPropertyContainer(propertyContainer);
-            });
-        });
+        );
     }
 
     private void populateSelectableValues(LinkedPropertyContainer linkedPropertyContainer) {
-        linkedPropertyContainer.setBeanContainers(
-                BeanContainerUtils.createBeanContainers(maintenanceTaskRepository.findAll(),
-                        new PropertyMetadata<>("name", "Name", MaintenanceTask::toString)));
+        linkedPropertyContainer.setBeanContainers(BeanContainerUtils.createBeanContainers(maintenanceTaskRepository
+                        .findAll(),
+                new PropertyMetadata<>("name", "Name", MaintenanceTask::toString)));
     }
 
     @Override
@@ -154,10 +148,9 @@ public class MaintenanceJobController implements GenericViewController<Maintenan
         MaintenanceJob ownerEntity = repository.getOne(bean.getParentEntityId());
         MaintenanceTask childEntity = maintenanceTaskRepository.getOne(bean.getChildEntityId());
 
-
         // Check if the car (linked to the Job) is eligible to get the maintenance
-        Set<MaintenanceType> applicableMaintenanceTypes = ownerEntity.getCar().getModel().getCarType()
-                .getApplicableMaintenanceTypes();
+        Set<MaintenanceType> applicableMaintenanceTypes =
+                ownerEntity.getCar().getModel().getCarType().getApplicableMaintenanceTypes();
         MaintenanceType newlyAddedMaintenanceType = childEntity.getType();
         if (!applicableMaintenanceTypes.contains(newlyAddedMaintenanceType)) {
             throw new InvalidParameterException("The maintenance is not applicable to the car!");

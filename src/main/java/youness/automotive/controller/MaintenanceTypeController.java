@@ -14,6 +14,7 @@ import youness.automotive.repository.model.CarType;
 import youness.automotive.repository.model.MaintenanceType;
 import youness.automotive.utils.BeanContainerUtils;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -103,4 +104,13 @@ public class MaintenanceTypeController implements GenericViewController<Maintena
             return null;
         }
     }
+
+    // TODO remove
+    @PostConstruct
+    public void populateSomeTypesForTest() {
+        MaintenanceType t = new MaintenanceType();
+        t.setName("Oil change");
+        repository.save(t);
+    }
+
 }

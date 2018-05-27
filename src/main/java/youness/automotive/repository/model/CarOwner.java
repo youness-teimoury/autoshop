@@ -1,6 +1,10 @@
 package youness.automotive.repository.model;
 
-import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import java.util.HashSet;
@@ -27,7 +31,8 @@ public class CarOwner extends BaseEntity {
     @Column(name = "phone", unique = true)
     private String phone;
 
-    @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, mappedBy = "owner")// ovoid double mapping by mapper
+    @OneToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE }, mappedBy = "owner")
+    // ovoid double mapping by mapper
     private Set<Car> cars = new HashSet<>();// TODO add to tests
 
     public String getFirstName() {
@@ -70,5 +75,9 @@ public class CarOwner extends BaseEntity {
     @Override
     public String toString() {
         return firstName + " " + secondName;
+    }
+
+    public String getShortName() {
+        return firstName + " " + secondName.substring(0, 1);
     }
 }

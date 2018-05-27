@@ -6,12 +6,24 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
-import youness.automotive.controller.bean.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import youness.automotive.controller.bean.BeanContainer;
+import youness.automotive.controller.bean.DataLinkRequestBean;
+import youness.automotive.controller.bean.DataLinkResponseBean;
+import youness.automotive.controller.bean.GenericPropertyContainer;
+import youness.automotive.controller.bean.LinkedPropertyContainer;
+import youness.automotive.controller.bean.PageMetaData;
+import youness.automotive.controller.bean.PropertyContainer;
+import youness.automotive.controller.bean.PropertyMetadata;
 import youness.automotive.repository.model.BaseEntity;
 import youness.automotive.utils.BeanContainerUtils;
 import youness.automotive.utils.StringUtils;
 
+import javax.validation.ValidationException;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -26,7 +38,8 @@ import java.util.stream.Stream;
  * <p>
  * The generic interface used on controller that want to use the automated list and edit view creation
  *
- * @param <T> the entity type
+ * @param <T>
+ *         the entity type
  */
 public interface GenericViewController<T extends BaseEntity> {
     String SELECT_POST_FORM_VALUE_PREFIX = "asyncPostFormSelectField_";
@@ -34,7 +47,7 @@ public interface GenericViewController<T extends BaseEntity> {
     String SELECT_POST_FORM_CHILD_TYPE_PREFIX = "asyncPostFormChildFieldType_";
     String SELECT_POST_FORM_OWNER_PREFIX = "asyncPostFormSelectParentFieldValue_";
 
-    final Logger logger = LoggerFactory.getLogger(GenericViewController.class);
+    Logger logger = LoggerFactory.getLogger(GenericViewController.class);
 
     /**
      * The name of the root folder view under templates folder
@@ -79,7 +92,8 @@ public interface GenericViewController<T extends BaseEntity> {
      * The linked property containers to be previewed on the view
      * This represents the OneToMany relations in entity mapping
      *
-     * @param beanId the optional bean/entity ID that the containers should be built for
+     * @param beanId
+     *         the optional bean/entity ID that the containers should be built for
      * @return
      */
     List<LinkedPropertyContainer> getLinkedPropertyContainers(Long beanId);
@@ -87,16 +101,20 @@ public interface GenericViewController<T extends BaseEntity> {
     /**
      * Should save the link between entities according to the bean value
      *
-     * @param bean           Represents the request bean that is parsed from save link request to join a child link to its parent
-     * @param linkUniqueName the unique name set on LinkedPropertyContainer's propertyName when containers were created and
-     *                       returned through;
-     *                       {@link youness.automotive.controller.GenericViewController#getLinkedPropertyContainers})
+     * @param bean
+     *         Represents the request bean that is parsed from save link request to join a child link to its parent
+     * @param linkUniqueName
+     *         the unique name set on LinkedPropertyContainer's propertyName when containers were created and
+     *         returned through;
+     *         {@link youness.automotive.controller.GenericViewController#getLinkedPropertyContainers})
      * @return the caption of the new added entity to be added to the table or null in case of any error
-     * @throws IllegalArgumentException  when link with unique name is not recognized
-     * @throws InvalidParameterException when there is a business logic error
+     * @throws IllegalArgumentException
+     *         when link with unique name is not recognized
+     * @throws InvalidParameterException
+     *         when there is a business logic error
      */
-    String handleSaveDataLinkRequest(DataLinkRequestBean bean, String linkUniqueName) throws IllegalArgumentException,
-            InvalidParameterException;
+    String handleSaveDataLinkRequest(DataLinkRequestBean bean, String linkUniqueName)
+            throws IllegalArgumentException, InvalidParameterException;
 
     /**
      * The method to handle view responsible to list the entities in a table
@@ -107,8 +125,7 @@ public interface GenericViewController<T extends BaseEntity> {
     @RequestMapping("/list")
     default String list(Model model) {
         List<T> entities = getRepository().findAll();
-        List<BeanContainer> beanContainers =
-                BeanContainerUtils.createBeanContainers(entities, getPropertyMetadata());
+        List<BeanContainer> beanContainers = BeanContainerUtils.createBeanContainers(entities, getPropertyMetadata());
 
         // Used to populate row values in the view's table
         model.addAttribute("list", beanContainers);
@@ -155,13 +172,20 @@ public interface GenericViewController<T extends BaseEntity> {
 
     @RequestMapping(value = "/save", method = RequestMethod.POST)
     default String save(T bean) {
+        try {
+            validateBeforeSave(bean);
+        } catch (ValidationException e) {
+            return getErrorViewPath();// TODO add parameter to show the error reason to user
+        }
+
         if (bean.getId() != null) { // existing entity is updated
             Optional<T> optionalEntity = getRepository().findById(bean.getId());
             if (optionalEntity.isPresent()) {
                 T entity = optionalEntity.get();
 
                 // getPropertyMetadata() is used in populatePropertyMetadata() to populate the edit/add view. Therefore,
-                // the input parameter input bean should be only considered for those properties returned by getPropertyMetadata()
+                // the input parameter input bean should be only considered for those properties returned by
+                // getPropertyMetadata()
                 BeanContainerUtils.copyProperties(bean, entity, getPropertyNames());
                 getRepository().save(entity);
             } else {
@@ -220,6 +244,7 @@ public interface GenericViewController<T extends BaseEntity> {
 
             return ResponseEntity.ok(result);
         } catch (Exception e) {
+            logger.error("Invalid save-link request received: " + postPayload);// TODO check the security threats
             return createResponseEntityForBadLinkRequest("Invalid request!");// TODO log the request
         }
 
@@ -251,7 +276,7 @@ public interface GenericViewController<T extends BaseEntity> {
     }
 
     default void populatePageMetadata(Model model, String title) {
-        model.addAttribute("pageMetadata", new PageMetaData(title));
+        model.addAttribute("pageMetadata", new PageMetaData(title, getRootViewName()));
     }
 
     default void populatePropertyMetadata(Model model, T entity) {
@@ -274,8 +299,8 @@ public interface GenericViewController<T extends BaseEntity> {
     /**
      * The containers to be populated on alter (edit/add) page
      * Make sure that what ever you put as the container property name and value should be compatible with the entity
-     * as thymleaf use those information to automatically deserialize the bean when save button is clicked (save
-     * method is called)
+     * as thymeleaf use those information to automatically deserialize the bean when save button is clicked (save
+     * method is called) using the form mapper
      *
      * @param entity
      * @return
@@ -317,5 +342,16 @@ public interface GenericViewController<T extends BaseEntity> {
 
     default String getListPath() {
         return String.format("redirect:/%s/list", getRootViewName());
+    }
+
+    /**
+     * Used to validate the bean before it is saved
+     * By default, no validation is handled.
+     *
+     * @param bean
+     * @throws ValidationException
+     */
+    default void validateBeforeSave(T bean) throws ValidationException {
+
     }
 }

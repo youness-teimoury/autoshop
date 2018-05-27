@@ -69,6 +69,7 @@ public class CarMakerController implements GenericViewController<CarMaker> {
         LinkedPropertyContainer linkedPropertyContainer =
                 new LinkedPropertyContainer(CAR_MODELS_LINK_UNIQUE_NAME, "Models");
         linkedPropertyContainer.setChildType(CarModel.class.getSimpleName());
+        linkedPropertyContainer.setSelectEnabled(false);
 
         // Populate existing values
         populateAlreadySetValues(linkedPropertyContainer, beanId);
@@ -122,6 +123,5 @@ public class CarMakerController implements GenericViewController<CarMaker> {
         f3.setName("Tesla");
         repository.save(f3);
     }
-
 
 }

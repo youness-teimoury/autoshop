@@ -58,6 +58,8 @@
                 <div class="row">
                     <div class="text-center">
                         <input type="submit" class="btn btn-primary" value="Save"></input>
+                        <a th:href="@{list}" class="btn btn-danger"
+                           onclick="return confirm('Unsaved data will be lost.\nAre you sure to continue?');">Cancel</a>
                     </div>
                 </div>
             </form>
@@ -72,7 +74,61 @@
         <!--iterate through all linked entities-->
         <!--This is the table that includes the existing links between the parent entity and the child entity-->
         <th:block th:each="linkedPropertyContainer : ${linkedPropertyContainers}">
-            <div class="col-md-8">
+            <div class="row">
+                <div class="col-md-4 pull-right">
+                    <div class="row">
+                        <p th:id="formPostConfirmation_ + ${linkedPropertyContainer.propertyName}"></p>
+                    </div>
+                    <div class="yns-space-div"></div>
+                    <div class="row">
+                        <div class="text-right">
+                            <form th:id="ayncPostForm_ + ${linkedPropertyContainer.propertyName}"
+                                  th:action="@{saveLink}" action="#" method="post">
+
+                                <!--Do not show the select if it is disabled-->
+                                <div th:if="${linkedPropertyContainer.isSelectEnabled()}">
+                                    <div class="col-md-8">
+                                        <select th:id="asyncPostFormSelectField_ + ${linkedPropertyContainer.propertyName}"
+                                                th:name="asyncPostFormSelectField_ + ${linkedPropertyContainer.propertyName}"
+                                                th:value="${linkedPropertyContainer.childId}"
+                                                class="form-control">
+                                            <option th:each="beanContainer : ${linkedPropertyContainer.beanContainers}"
+                                                    th:value="${beanContainer.id}"
+                                                    th:text="${beanContainer.caption}">
+                                            </option>
+                                        </select>
+                                    </div>
+
+                                    <!--The hidden field to maintain the owning entity ID-->
+                                    <input th:id="asyncPostFormSelectParentFieldValue_ + ${linkedPropertyContainer.propertyName}"
+                                           th:name="asyncPostFormSelectParentFieldValue_ + ${linkedPropertyContainer.propertyName}"
+                                           th:value="${linkedPropertyContainer.parentId}"
+                                           type="hidden"/>
+                                    <!--The hidden field to maintain the owning entity type-->
+                                    <input th:id="asyncPostFormParentFieldType_ + ${linkedPropertyContainer.propertyName}"
+                                           th:name="asyncPostFormParentFieldType_ + ${linkedPropertyContainer.propertyName}"
+                                           th:value="${linkedPropertyContainer.parentType}"
+                                           type="hidden"/>
+                                    <!--The hidden field to maintain the child entity type-->
+                                    <input th:id="asyncPostFormChildFieldType_ + ${linkedPropertyContainer.propertyName}"
+                                           th:name="asyncPostFormChildFieldType_ + ${linkedPropertyContainer.propertyName}"
+                                           th:value="${linkedPropertyContainer.childType}"
+                                           type="hidden"/>
+
+                                    <input type="submit" name="action"
+                                           class="col-md-3 btn btn-primary"
+                                           value="Add & save"></input>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="yns-space-div"></div>
+
+            <!--populate the table-->
+            <div class="col-md-12">
                 <div class="panel panel-default">
                     <div class="panel-body" style="padding-left: 5px;">
                         <label th:text="${linkedPropertyContainer.propertyCaption}"></label>
@@ -83,49 +139,6 @@
                             <tr>
                         </table>
                     </div>
-                </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="row">
-                    <form th:id="ayncPostForm_ + ${linkedPropertyContainer.propertyName}"
-                          th:action="@{saveLink}" action="#" method="post">
-                        <!--Do not show the select if it is disabled-->
-                        <div th:if="${linkedPropertyContainer.isSelectEnabled()}" class="col-md-9">
-                            <select th:id="asyncPostFormSelectField_ + ${linkedPropertyContainer.propertyName}"
-                                    th:name="asyncPostFormSelectField_ + ${linkedPropertyContainer.propertyName}"
-                                    th:value="${linkedPropertyContainer.childId}"
-                                    class="form-control">
-                                <option th:each="beanContainer : ${linkedPropertyContainer.beanContainers}"
-                                        th:value="${beanContainer.id}"
-                                        th:text="${beanContainer.caption}">
-                                </option>
-                            </select>
-                        </div>
-                        <!--The hidden field to maintain the owning entity ID-->
-                        <input th:id="asyncPostFormSelectParentFieldValue_ + ${linkedPropertyContainer.propertyName}"
-                               th:name="asyncPostFormSelectParentFieldValue_ + ${linkedPropertyContainer.propertyName}"
-                               th:value="${linkedPropertyContainer.parentId}"
-                               type="hidden"/>
-                        <!--The hidden field to maintain the owning entity type-->
-                        <input th:id="asyncPostFormParentFieldType_ + ${linkedPropertyContainer.propertyName}"
-                               th:name="asyncPostFormParentFieldType_ + ${linkedPropertyContainer.propertyName}"
-                               th:value="${linkedPropertyContainer.parentType}"
-                               type="hidden"/>
-                        <!--The hidden field to maintain the child entity type-->
-                        <input th:id="asyncPostFormChildFieldType_ + ${linkedPropertyContainer.propertyName}"
-                               th:name="asyncPostFormChildFieldType_ + ${linkedPropertyContainer.propertyName}"
-                               th:value="${linkedPropertyContainer.childType}"
-                               type="hidden"/>
-                        <!--Do not show the submit button if the select is disabled-->
-                        <input th:if="${linkedPropertyContainer.isSelectEnabled()}" type="submit" name="action"
-                               class="col-md-3 btn btn-primary"
-                               value="Add & save"></input>
-                    </form>
-                </div>
-                <div class="yns-space-div"></div>
-                <div class="row">
-                    <p th:id="formPostConfirmation_ + ${linkedPropertyContainer.propertyName}"></p>
                 </div>
             </div>
         </th:block>

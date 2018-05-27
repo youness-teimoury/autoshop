@@ -1,11 +1,18 @@
 package youness.automotive.repository.model;
 
-
 import org.springframework.format.annotation.DateTimeFormat;
+import youness.automotive.utils.DateUtils;
 
-import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import javax.validation.constraints.NotNull;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -15,7 +22,8 @@ import java.util.Set;
  * www.youness-teimouri.com
  * <p>
  * The entity mapping to track the maintenance jobs provided to a specific car
- * Each instance represents the series of maintenance tasks that are provided to a car during a maintenance period (visit)
+ * Each instance represents the series of maintenance tasks that are provided to a car during a maintenance period
+ * (visit)
  */
 @Entity
 @Table(name = "maintenance_job")
@@ -38,7 +46,7 @@ public class MaintenanceJob extends BaseEntity {
      * The detailed tasks under this job
      * Initialization is to avoid boilerplate code to create(check, sync, create) the set in addTask method
      */
-    @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @OneToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE }, mappedBy = "maintenanceJob")
     private Set<MaintenanceTask> maintenanceTasks = new HashSet<>();
 
     public Car getCar() {
@@ -83,7 +91,6 @@ public class MaintenanceJob extends BaseEntity {
 
     @Override
     public String toString() {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z");
-        return dateFormat.format(startDate) + " to " + (endDate == null ? "ongoing" : dateFormat.format(endDate));
+        return DateUtils.format(startDate) + (endDate == null ? " [ongoing]" : "to " + DateUtils.format(endDate));
     }
 }

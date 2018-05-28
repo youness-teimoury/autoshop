@@ -18,7 +18,7 @@ import java.util.Set;
 @Entity
 @Table(name = "car_maker")
 public class CarMaker extends BaseEntity {
-    @NotNull
+    @NotNull(message = "The name should be specified.")
     @Column(unique = true)
     private String name;
 

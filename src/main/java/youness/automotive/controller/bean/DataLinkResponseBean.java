@@ -22,6 +22,11 @@ public class DataLinkResponseBean {
      */
     private String entity;
 
+    /**
+     * The response might have a redirection relative link
+     */
+    private String redirectionRelativeLink;
+
     public boolean isError() {
         return error;
     }
@@ -44,5 +49,13 @@ public class DataLinkResponseBean {
 
     public void setEntity(String entity) {
         this.entity = entity;
+    }
+
+    public String getRedirectionRelativeLink() {
+        return redirectionRelativeLink;
+    }
+
+    public void setRedirectionRelativeLink(String redirectionRelativeLink) {
+        this.redirectionRelativeLink = redirectionRelativeLink;
     }
 }

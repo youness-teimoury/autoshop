@@ -1,11 +1,7 @@
 package youness.automotive.repository.model;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-import javax.validation.constraints.NotNull;
+import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import java.util.HashSet;
 import java.util.Set;
@@ -19,11 +15,11 @@ import java.util.Set;
 @Entity
 @Table(name = "car_owner")
 public class CarOwner extends BaseEntity {
-    @NotNull
+    @NotBlank(message = "First name should be specified.")
     @Column(name = "first_name")
     private String firstName;
 
-    @NotNull
+    @NotBlank(message = "Second name should be specified.")
     @Column(name = "second_name")
     private String secondName;
 

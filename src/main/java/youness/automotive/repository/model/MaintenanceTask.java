@@ -12,11 +12,11 @@ import javax.validation.constraints.NotNull;
 @Entity
 @Table(name = "maintenance_task")
 public class MaintenanceTask extends BaseEntity {
-    @NotNull
+    @NotNull(message = "The maintenance job should be specified.")
     @ManyToOne(fetch = FetchType.LAZY)
     private MaintenanceJob maintenanceJob;
 
-    @NotNull
+    @NotNull(message = "The maintenance type should be specified.")
     @ManyToOne(fetch = FetchType.LAZY)
     private MaintenanceType type;
 

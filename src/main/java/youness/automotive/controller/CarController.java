@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import youness.automotive.controller.bean.*;
 import youness.automotive.repository.CarModelRepository;
 import youness.automotive.repository.CarOwnerRepository;
@@ -28,6 +29,7 @@ public class CarController implements GenericViewController<Car> {
     static final String CONTROLLER_PATH = "/" + CONTROLLER_NAME;
 
     private static final String MAINTENANCE_JOBS_LINK_UNIQUE_NAME = "maintenanceJobs";
+    private static final String ADD_JOB_RELATIVE_PATH = "addJob";
 
     @Autowired
     private CarRepository repository;
@@ -171,4 +173,18 @@ public class CarController implements GenericViewController<Car> {
         // Maintenance Job to a car fom here)
         throw new IllegalArgumentException("Link name is not allowed here!");
     }
+
+    @Override
+    public List<MenuAction> getOptionalActions() {
+        return Collections.singletonList(new MenuAction("Add Job", ADD_JOB_RELATIVE_PATH));
+    }
+
+    @RequestMapping(value = "/" + ADD_JOB_RELATIVE_PATH)
+    public String addJob(@RequestParam("id") Long beanId) {
+        return String.format("redirect:%s/%s?%s=%d",
+                MaintenanceJobController.CONTROLLER_PATH,
+                MaintenanceJobController.ADD_JOB_FOR_CAR_RELATIVE_PATH,
+                MaintenanceJobController.ADD_JOB_FOR_CAR_PARAM_NAME, beanId);
+    }
+
 }

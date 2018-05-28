@@ -20,19 +20,19 @@ public class CarModel extends BaseEntity {
     /**
      * The model name
      */
-    @NotBlank
+    @NotBlank(message = "The name should be specified.")
     @Column(name = "name")
     private String name;
 
     /**
      * The builder of this model
      */
-    @NotNull
+    @NotNull(message = "The car maker should be specified.")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "car_maker_id")
     private CarMaker maker;
 
-    @NotNull
+    @NotNull(message = "The car type should be specified.")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "car_type_id")
     private CarType carType;

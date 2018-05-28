@@ -12,12 +12,9 @@ import youness.automotive.repository.model.BaseEntity;
 import youness.automotive.utils.BeanContainerUtils;
 import youness.automotive.utils.StringUtils;
 
-import javax.validation.ValidationException;
+import javax.validation.*;
 import java.security.InvalidParameterException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -34,6 +31,7 @@ public interface GenericViewController<T extends BaseEntity> {
     String SELECT_POST_FORM_OWNER_TYPE_PREFIX = "asyncPostFormParentFieldType_";
     String SELECT_POST_FORM_CHILD_TYPE_PREFIX = "asyncPostFormChildFieldType_";
     String SELECT_POST_FORM_OWNER_PREFIX = "asyncPostFormSelectParentFieldValue_";
+    String LIST_RELATIVE_PATH = "list";
 
     Logger logger = LoggerFactory.getLogger(GenericViewController.class);
 
@@ -105,7 +103,7 @@ public interface GenericViewController<T extends BaseEntity> {
      * @param model
      * @return
      */
-    @RequestMapping("/list")
+    @RequestMapping("/" + LIST_RELATIVE_PATH)
     default String list(Model model) {
         List<T> entities = getRepository().findAll();
         List<BeanContainer> beanContainers = BeanContainerUtils.createBeanContainers(entities, getPropertyMetadata());
@@ -158,11 +156,11 @@ public interface GenericViewController<T extends BaseEntity> {
     }
 
     @RequestMapping(value = "/save", method = RequestMethod.POST)
-    default String save(T bean) {
+    default ResponseEntity save(T bean) {
         try {
             validateBeforeSave(bean);
         } catch (ValidationException e) {
-            return getErrorViewPath();// TODO add parameter to show the error reason to user
+            return createResponseForError(e.getMessage());
         }
 
         if (bean.getId() != null) { // existing entity is updated
@@ -176,13 +174,29 @@ public interface GenericViewController<T extends BaseEntity> {
                 BeanContainerUtils.copyProperties(bean, entity, getPropertyNames());
                 getRepository().save(entity);
             } else {
-                return getErrorViewPath();
+                return createResponseForError(String.format("Such %s does not exist anymore and your changes are " +
+                        "not saved. Please cancel and go back to the list.", getViewTitle()));
             }
         } else { // new entity is added
             getRepository().save(bean);
         }
 
-        return getListPath();
+        return createResponseForRedirection(LIST_RELATIVE_PATH);
+//        return getListPath();
+    }
+
+    default ResponseEntity createResponseForRedirection(String redirectionRelativeLink) {
+        DataLinkResponseBean result = new DataLinkResponseBean();
+        result.setError(false);
+        result.setRedirectionRelativeLink(redirectionRelativeLink);
+        return ResponseEntity.ok(result);
+    }
+
+    default ResponseEntity createResponseForError(String errorMessage) {
+        DataLinkResponseBean result = new DataLinkResponseBean();
+        result.setError(true);
+        result.setMessage(errorMessage);
+        return ResponseEntity.ok(result);
     }
 
     @RequestMapping(value = "/delete/{id}", method = RequestMethod.GET)
@@ -336,12 +350,21 @@ public interface GenericViewController<T extends BaseEntity> {
     /**
      * Used to validate the bean before it is saved
      * By default, no validation is handled.
+     * Note: It is always a good practice to make sure this method is called from child class implementations.
      *
      * @param bean
      * @throws ValidationException
      */
     default void validateBeforeSave(T bean) throws ValidationException {
+        ValidatorFactory vf = Validation.buildDefaultValidatorFactory();
+        Validator validator = vf.getValidator();
+        Set<ConstraintViolation<T>> violations = validator.validate(bean);
 
+        if (violations.size() > 0) {
+            String errorMessage = "Please correct the following violations:\n" +
+                    violations.stream().map(ConstraintViolation::getMessage).collect(Collectors.joining("\n"));
+            throw new ValidationException(errorMessage);
+        }
     }
 
     /**

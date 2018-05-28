@@ -20,12 +20,12 @@ import java.util.Set;
 @Entity
 @Table(name = "maintenance_job")
 public class MaintenanceJob extends BaseEntity {
-    @NotNull
+    @NotNull(message = "The car should be specified.")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "car_id")
     private Car car;
 
-    @NotNull
+    @NotNull(message = "The start date should be specified.")
     @Temporal(TemporalType.DATE)
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date startDate = new Date();

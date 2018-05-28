@@ -10,6 +10,7 @@ import youness.automotive.controller.bean.*;
 import youness.automotive.repository.MaintenanceJobRepository;
 import youness.automotive.repository.MaintenanceTaskRepository;
 import youness.automotive.repository.MaintenanceTypeRepository;
+import youness.automotive.repository.model.CarModel;
 import youness.automotive.repository.model.MaintenanceJob;
 import youness.automotive.repository.model.MaintenanceTask;
 import youness.automotive.repository.model.MaintenanceType;
@@ -125,13 +126,17 @@ public class MaintenanceTaskController implements GenericViewController<Maintena
 
     @Override
     public void validateBeforeSave(MaintenanceTask maintenanceTask) throws ValidationException {
+        GenericViewController.super.validateBeforeSave(maintenanceTask);
+
         // get the new or updated task type
         MaintenanceType newTaskType = maintenanceTask.getType();
 
+        CarModel carModel = maintenanceTask.getMaintenanceJob().getCar().getModel();
         Set<MaintenanceType> applicableMaintenanceTypes =
-                maintenanceTask.getMaintenanceJob().getCar().getModel().getCarType().getApplicableMaintenanceTypes();
+                carModel.getCarType().getApplicableMaintenanceTypes();
         if (!applicableMaintenanceTypes.contains(newTaskType)) {
-            throw new ValidationException("The maintenance is not applicable to the selected car.");
+            throw new ValidationException(String.format("The maintenance %s, is not applicable to %s.",
+                    newTaskType.getName(), carModel.toString()));
         }
     }
 

@@ -10,6 +10,7 @@ import youness.automotive.controller.bean.*;
 import youness.automotive.repository.CarRepository;
 import youness.automotive.repository.MaintenanceJobRepository;
 import youness.automotive.repository.MaintenanceTaskRepository;
+import youness.automotive.repository.model.Car;
 import youness.automotive.repository.model.MaintenanceJob;
 import youness.automotive.repository.model.MaintenanceTask;
 import youness.automotive.repository.model.MaintenanceType;
@@ -29,16 +30,15 @@ import java.util.Set;
 @Controller
 @RequestMapping(MaintenanceJobController.CONTROLLER_PATH)
 public class MaintenanceJobController implements GenericViewController<MaintenanceJob> {
+    public static final String ADD_JOB_FOR_CAR_RELATIVE_PATH = "addToCar";
+    public static final String ADD_JOB_FOR_CAR_PARAM_NAME = "carId";
     private static final String CONTROLLER_NAME = "maintenanceJob";
     static final String CONTROLLER_PATH = "/" + CONTROLLER_NAME;
-
     private static final String MAINTENANCE_TASKS_LINK_UNIQUE_NAME = "maintenanceTasks";
-
     /**
      * The relative path to add tasks on job
      */
     private static final String ADD_TASK_RELATIVE_PATH = "addTask";
-
     @Autowired
     private MaintenanceJobRepository repository;
 
@@ -178,4 +178,14 @@ public class MaintenanceJobController implements GenericViewController<Maintenan
                 MaintenanceTaskController.ADD_TASK_FOR_JOB_RELATIVE_PATH,
                 MaintenanceTaskController.ADD_TASK_FOR_JOB_PARAM_NAME, beanId);
     }
+
+    @RequestMapping(value = "/" + ADD_JOB_FOR_CAR_RELATIVE_PATH)
+    public String addJob(@RequestParam(ADD_JOB_FOR_CAR_PARAM_NAME) Long carId, Model model) {
+        Car car = carRepository.getOne(carId);
+        MaintenanceJob entity = new MaintenanceJob();
+        entity.setCar(car);
+
+        return setupAddModelAndReturnAlterView(entity, model);
+    }
+
 }

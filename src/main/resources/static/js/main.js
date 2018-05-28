@@ -15,8 +15,7 @@ function getFormPostConfirmation($form) {
     return 'formPostConfirmation_' + $form.attr('id').split('_')[1];
 }
 
-
-(function ($) {
+function overrideAsyncPostFormsSubmission() {
     // Get all the forms that support Async post. The id of such forms start with asyncPostForms by our convention.
     var asyncPostForms = $('form[id^="ayncPostForm_"]');
     // Iterate through them and set the submit function on each
@@ -39,7 +38,7 @@ function getFormPostConfirmation($form) {
                 if (typeof $(response)[0].error !== "undefined" && !$(response)[0].error) {
                     $linkTable.append('<tr><td>' + $(response)[0].entity + '</td></tr>');
                 } else if (typeof $(response)[0].error !== "undefined" && $(response)[0].error) {
-                    $formPostConfirmationElement.text($(response)[0].message)
+                    $formPostConfirmationElement.text($(response)[0].message);
                 } else {
                     // if the response contains any errors, replace the form
                     $form.replaceWith(response);
@@ -51,4 +50,47 @@ function getFormPostConfirmation($form) {
             }
         });
     });
+};
+
+function overrideMainFormSubmission() {
+      // Get all the main form
+      var mainForm = $('form[id^="mainForm"]');
+      debugger;
+      // Iterate through them and set the submit function on each
+      mainForm.on('submit', function (e) {
+            debugger;
+            e.preventDefault();
+            // e.target is the form which submit has happened on.
+            // convert DOM Form element to JQuery object
+            //$form = mainForm;
+            $form = $(e.target);
+
+        $.ajax({
+            url: $form.attr('action'),
+            type: 'post',
+                data: $form.serialize(),
+                success: function (response) {
+                    debugger;
+                    if (typeof $(response)[0].error !== "undefined" && !$(response)[0].error) {
+                        debugger;
+                        window.location.href = $(response)[0].redirectionRelativeLink;
+                    } else if (typeof $(response)[0].error !== "undefined" && $(response)[0].error) {
+                        // Show the error message
+                        alert($(response)[0].message);
+                    } else {
+                    //this should not happen normally though if the response contains any errors, replace the form
+                        $form.replaceWith(response);
+                    }
+                },
+                error: function (response) {
+                    // if the response contains any errors, replace the form
+                    $form.replaceWith(response);
+                }
+            });
+        });
+};
+
+(function ($) {
+    overrideAsyncPostFormsSubmission();
+    overrideMainFormSubmission();
 }(jQuery));

@@ -37,7 +37,7 @@ public class Car extends BaseEntity {
     @Range(min = 0, max = 1000000, message = "Odometer can be between 0 to 1 million kilometers!")
     private int odometer;
 
-    @NotBlank
+    @NotBlank(message = "Engine No. should not be blank.")
     @Column(name = "engine_no")
     private String engineNo;
 

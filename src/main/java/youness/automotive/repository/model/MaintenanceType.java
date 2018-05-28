@@ -1,7 +1,7 @@
 package youness.automotive.repository.model;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.util.HashSet;
 import java.util.Set;
@@ -17,7 +17,7 @@ import java.util.Set;
 @Entity
 @Table(name = "maintenance_task_type")
 public class MaintenanceType extends BaseEntity {
-    @NotNull
+    @NotBlank(message = "The name should be specified.")
     @Size(min = 1, max = 255)
     @Column(name = "name")
     private String name;

@@ -4,7 +4,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.util.HashSet;
 import java.util.Set;
@@ -23,7 +23,7 @@ public class CarType extends BaseEntity {
     /**
      * The public name of the user
      */
-    @NotNull
+    @NotBlank(message = "The name should be specified.")
     @Size(min = 1, max = 255)
     @Column(name = "name", unique = true)
     private String name;
